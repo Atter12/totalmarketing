@@ -116,15 +116,22 @@
   /* Panda: poster + click -> iframe en la misma caja */
   .panda-frame-wrap{
     position:absolute;inset:0;z-index:1;background:#000;
+    pointer-events:none;
+  }
+  .panda-frame-wrap.has-iframe{
+    pointer-events:auto;
   }
   .panda-launch{
-    position:absolute;inset:0;z-index:2;
+    position:absolute;inset:0;z-index:3;
     display:block;width:100%;height:100%;margin:0;padding:0;
     border:0;background:transparent;cursor:pointer;color:inherit;
+    touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   }
   .panda-poster{
     position:absolute;inset:0;width:100%;height:100%;
     object-fit:cover;
+    pointer-events:none;
+    user-select:none;
   }
   .panda-launch .panda-playbtn{
     position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
@@ -345,10 +352,11 @@
         <button type="button" class="panda-launch" id="pandaLaunch" aria-label="Reproducir video">
           <img
             class="panda-poster"
-            src="https://thumbs.tv.pandavideo.com.br/vz-d7a47b2c-d9b/bf52c68b-890f-43b8-b9a7-174dff798000/cover.jpg"
+            id="pandaPoster"
+            src="https://cdn.pandavideo.com/vz-d7a47b2c-d9b/bf52c68b-890f-43b8-b9a7-174dff798000/thumbnail.jpg"
             alt=""
-            width="1280"
-            height="720"
+            width="560"
+            height="315"
             loading="eager"
             decoding="async"
             fetchpriority="high"
@@ -549,33 +557,85 @@ const $  = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
 
 /* ===================== PANDA VIDEO (poster + mismo panel, muted) ===================== */
+const LOG = '[Holistic/panda]';
+const PANDA_VIDEO_ID = 'bf52c68b-890f-43b8-b9a7-174dff798000';
 const PANDA_EMBED_SRC =
-  'https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/?v=bf52c68b-890f-43b8-b9a7-174dff798000&autoplay=true&muted=true&mutedIndicatorIcon=false';
+  `https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/?v=${PANDA_VIDEO_ID}&autoplay=true&muted=true&mutedIndicatorIcon=false`;
+const PANDA_POSTER_PRIMARY =
+  `https://cdn.pandavideo.com/vz-d7a47b2c-d9b/${PANDA_VIDEO_ID}/thumbnail.jpg`;
+const PANDA_POSTER_FALLBACK =
+  `https://thumbs.tv.pandavideo.com.br/vz-d7a47b2c-d9b/${PANDA_VIDEO_ID}/cover.jpg`;
+
+(function initPandaPoster(){
+  const img = $('#pandaPoster');
+  if(!img){ console.warn(LOG,'#pandaPoster no encontrado'); return; }
+  fetch('poster-hd.jpg', { method:'HEAD', cache:'no-store' })
+    .then(r=>{
+      if(r.ok){
+        img.src = 'poster-hd.jpg';
+        console.log(LOG,'Usando poster local poster-hd.jpg (máxima calidad)');
+      }
+    })
+    .catch(()=>{});
+  img.addEventListener('load', ()=>{
+    console.log(LOG,'Poster cargado:', img.currentSrc || img.src, `${img.naturalWidth}×${img.naturalHeight}px`);
+    if(img.naturalWidth > 0 && img.naturalWidth < 120){
+      console.warn(LOG,'Miniatura muy pequeña; exporta un frame en Panda o añade poster-hd.jpg (~1920px) junto a index.html');
+    }
+  });
+  img.addEventListener('error', ()=>{
+    console.warn(LOG,'Falló poster CDN; intentando fallback thumbs.tv');
+    img.removeAttribute('src');
+    img.src = PANDA_POSTER_FALLBACK;
+  });
+  console.log(LOG,'Poster por defecto (oEmbed CDN, ~560px ancho):', PANDA_POSTER_PRIMARY);
+})();
 
 (function initPandaLaunch(){
   const launch = $('#pandaLaunch');
   const wrap = $('#pandaFrameWrap');
-  if(!launch || !wrap) return;
-  let started = false;
-  function start(){
-    if(started) return;
-    started = true;
-    const iframe = document.createElement('iframe');
-    iframe.src = PANDA_EMBED_SRC;
-    iframe.title = 'Video VSL';
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute(
-      'allow',
-      'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen'
-    );
-    iframe.loading = 'eager';
-    wrap.appendChild(iframe);
-    wrap.removeAttribute('aria-hidden');
-    launch.hidden = true;
+  const inner = $('#videoInner');
+  if(!launch || !wrap){
+    console.error(LOG,'init cancelado — falta #pandaLaunch o #pandaFrameWrap', { launch:!!launch, wrap:!!wrap });
+    return;
   }
-  launch.addEventListener('click', start);
+  console.log(LOG,'init OK', { innerRect: inner ? inner.getBoundingClientRect() : null });
+  let started = false;
+  function start(src){
+    if(started){
+      console.log(LOG,'start ignorado (ya iniciado)');
+      return;
+    }
+    started = true;
+    console.log(LOG,'Iniciando reproductor…', src || 'click');
+    try{
+      const iframe = document.createElement('iframe');
+      iframe.src = PANDA_EMBED_SRC;
+      iframe.title = 'Video VSL';
+      iframe.setAttribute(
+        'allow',
+        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen'
+      );
+      iframe.loading = 'eager';
+      wrap.appendChild(iframe);
+      wrap.classList.add('has-iframe');
+      wrap.removeAttribute('aria-hidden');
+      launch.hidden = true;
+      console.log(LOG,'iframe montado:', PANDA_EMBED_SRC);
+    }catch(err){
+      console.error(LOG,'Error al crear iframe:', err);
+      started = false;
+    }
+  }
+  launch.addEventListener('click', e=>{
+    console.log(LOG,'click en launch', e.target?.className);
+    start('click');
+  });
+  launch.addEventListener('pointerdown', e=>{
+    console.log(LOG,'pointerdown', e.pointerType);
+  });
   launch.addEventListener('keydown', e=>{
-    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); start(); }
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); start('keyboard'); }
   });
 })();
 
