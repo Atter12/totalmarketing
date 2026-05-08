@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Holistic Marketing — Pauta Productos Black en TikTok Ads</title>
+<meta name="description" content="Solo para negocios ecommerce contra entrega que venden por Shopify. Agenda tu llamada con Holistic Marketing." />
+<style>
+  /* ============== RESET ============== */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:#fff;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  img,svg,video,iframe{display:block;max-width:100%}
+  button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select{font:inherit;color:inherit}
+  a{color:inherit;text-decoration:none}
+
+  /* ============== TOKENS ============== */
+  :root{
+    --cyan:#3FF8E3;
+    --cyan-2:#5CFFE9;
+    --bg:#000;
+    --panel:#0a0a0a;
+    --line:rgba(63,248,227,.35);
+    --red:#ff2b5e;
+    --green:#19c37d;
+    --muted:#9aa3ad;
+    --radius:14px;
+    --shadow-cyan:0 0 28px rgba(63,248,227,.35), 0 0 80px rgba(63,248,227,.18);
+    --shadow-red:0 0 60px rgba(255,43,94,.35), 0 0 120px rgba(255,43,94,.18);
+  }
+
+  /* ============== TOP BAR ============== */
+  .topbar{
+    background:var(--cyan);
+    color:#001b18;
+    text-align:center;
+    font-weight:700;
+    padding:14px 20px;
+    font-size:clamp(14px,2.4vw,18px);
+    letter-spacing:.2px;
+  }
+
+  /* ============== HERO ============== */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    padding:48px 20px 64px;
+    background:
+      radial-gradient(60% 40% at 50% 0%, rgba(63,248,227,.18), transparent 60%),
+      radial-gradient(60% 40% at 50% 100%, rgba(255,43,94,.18), transparent 60%),
+      #000;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;inset:0 0 auto 0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    opacity:.7;
+  }
+  .container{max-width:1100px;margin:0 auto}
+  .h1{
+    font-weight:800;
+    text-align:center;
+    font-size:clamp(28px,4.6vw,52px);
+    line-height:1.1;
+    letter-spacing:-.02em;
+    margin:8px auto 28px;
+    max-width:18ch;
+  }
+  .h1 b{color:#fff}
+
+  /* video wrap with neon glow */
+  .video-wrap{
+    position:relative;
+    border-radius:18px;
+    padding:6px;
+    background:linear-gradient(135deg,rgba(63,248,227,.5),rgba(255,43,94,.5));
+    box-shadow:var(--shadow-cyan), var(--shadow-red);
+    max-width:880px;margin:0 auto;
+  }
+  .video-inner{
+    position:relative;
+    border-radius:14px;
+    overflow:hidden;
+    background:#000;
+    aspect-ratio:16/9;
+  }
+  .video-inner iframe,.video-inner video{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .video-placeholder{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,43,94,.35), transparent 60%),
+      #0a0a0a;
+    text-align:center;color:#fff;
+  }
+  .video-placeholder .play{
+    width:84px;height:84px;border-radius:50%;
+    background:rgba(255,255,255,.12);
+    border:2px solid rgba(255,255,255,.7);
+    display:grid;place-items:center;
+    backdrop-filter:blur(4px);
+  }
+  .video-placeholder .play::after{
+    content:"";display:block;
+    width:0;height:0;
+    border-left:22px solid #fff;
+    border-top:14px solid transparent;
+    border-bottom:14px solid transparent;
+    margin-left:6px;
+  }
+  .video-placeholder .hint{
+    position:absolute;left:0;right:0;bottom:18px;
+    font-size:13px;color:#9aa3ad;
+  }
+
+  /* CTA */
+  .cta-wrap{display:flex;justify-content:center;margin-top:36px}
+  .cta{
+    display:inline-flex;align-items:center;gap:14px;
+    padding:18px 36px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:clamp(18px,2.6vw,24px);
+    letter-spacing:.5px;
+    color:#001b18;
+    background:linear-gradient(180deg,#7afff0,var(--cyan));
+    box-shadow:0 12px 40px rgba(63,248,227,.45), inset 0 -4px 0 rgba(0,0,0,.12);
+    transition:transform .15s ease, box-shadow .2s ease;
+  }
+  .cta:hover{transform:translateY(-2px);box-shadow:0 20px 60px rgba(63,248,227,.55)}
+  .cta:active{transform:translateY(0)}
+  .cta svg{width:22px;height:22px}
+
+  /* ============== STEP 2 (FORM) ============== */
+  .form-section{
+    display:none;
+    padding:32px 16px 80px;
+    background:#000;
+  }
+  .form-section.active{display:block}
+  .form-head h2{
+    text-align:center;font-weight:800;
+    font-size:clamp(20px,3.2vw,28px);
+    margin-bottom:6px;
+  }
+  .form-head .alert{
+    text-align:center;
+    color:#fff;
+    font-size:clamp(14px,2.4vw,18px);
+    margin-bottom:24px;
+  }
+  .form-head .alert b{color:var(--red)}
+
+  .card{
+    max-width:520px;margin:0 auto;
+    background:#fff;color:#0b1220;
+    border-radius:18px;
+    padding:24px 22px 28px;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);
+  }
+  .card .back{
+    width:36px;height:36px;border-radius:50%;
+    background:#eaf2ff;color:#1d6cf4;
+    display:grid;place-items:center;
+    margin-bottom:14px;
+  }
+
+  /* meeting summary */
+  .meeting{
+    border:1px solid #e6e9ee;border-radius:12px;
+    padding:14px 16px;margin-bottom:16px;
+    font-size:14px;color:#0b1220;
+  }
+  .meeting div{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+  .meeting div span:first-child{width:18px;flex:none;color:#5b6573}
+  .meeting .desc{color:#3b4350}
+  .meeting a{color:#1d6cf4;font-weight:600}
+
+  .step-title{font-weight:700;font-size:18px;margin:6px 0 14px}
+  .progress{
+    height:6px;background:#eef1f6;border-radius:999px;overflow:hidden;margin:0 0 18px;
+  }
+  .progress span{display:block;height:100%;background:linear-gradient(90deg,#1d6cf4,#3FF8E3);width:0;transition:width .3s ease}
+
+  .field{margin-bottom:14px}
+  .field label{display:block;font-weight:600;font-size:14px;margin-bottom:6px;color:#0b1220}
+  .field label em{color:#1d6cf4;font-style:normal}
+  .field input[type=text],
+  .field input[type=email],
+  .field input[type=tel]{
+    width:100%;padding:12px 14px;border:1px solid #d6dbe3;border-radius:10px;
+    font-size:15px;background:#fff;color:#0b1220;transition:border-color .15s, box-shadow .15s;
+  }
+  .field input:focus{outline:none;border-color:#1d6cf4;box-shadow:0 0 0 3px rgba(29,108,244,.18)}
+  .field .help{font-size:12px;color:#5b6573;margin-top:6px}
+  .field.error input{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,43,94,.15)}
+  .field .err{display:none;color:var(--red);font-size:12px;margin-top:6px}
+  .field.error .err{display:block}
+
+  /* WhatsApp combo */
+  .phone{display:flex;gap:8px}
+  .phone .country{
+    flex:none;width:120px;display:flex;align-items:center;gap:6px;
+    border:1px solid #d6dbe3;border-radius:10px;padding:0 10px;background:#fff;
+  }
+  .phone .country select{
+    border:none;background:transparent;font-size:14px;padding:12px 0;width:100%;
+  }
+  .phone .flag{font-size:18px}
+  .phone input{flex:1}
+
+  /* radio groups */
+  .radios{display:flex;flex-direction:column;gap:10px}
+  .radios label{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:12px 14px;border:1px solid #d6dbe3;border-radius:10px;
+    cursor:pointer;font-weight:500;font-size:14px;color:#0b1220;
+    transition:border-color .15s, background .15s;
+  }
+  .radios label:hover{border-color:#1d6cf4;background:#f6f9ff}
+  .radios input{accent-color:#1d6cf4;margin-top:2px}
+  .radios label.checked{border-color:#1d6cf4;background:#f0f6ff}
+
+  .commitment{
+    border:1px solid #d6dbe3;border-radius:10px;padding:14px;
+    font-size:13.5px;color:#0b1220;line-height:1.5;
+  }
+  .commitment .check{display:flex;gap:10px;margin-top:10px;align-items:flex-start}
+  .commitment input{margin-top:3px;accent-color:#1d6cf4}
+
+  .actions{display:flex;gap:10px;margin-top:18px}
+  .btn{
+    flex:1;padding:14px 16px;border-radius:10px;font-weight:700;font-size:15px;
+    transition:transform .12s, box-shadow .15s, background .15s;
+  }
+  .btn-primary{background:#1d6cf4;color:#fff;box-shadow:0 8px 24px rgba(29,108,244,.35)}
+  .btn-primary:hover{background:#155ad6}
+  .btn-ghost{background:#fff;color:#1d6cf4;border:1px solid #1d6cf4}
+  .btn-ghost:hover{background:#f0f6ff}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+
+  .step{display:none}
+  .step.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ============== STEP 3 (THANK YOU) ============== */
+  .thanks{
+    display:none;min-height:100vh;
+    align-items:center;justify-content:center;
+    padding:48px 20px;text-align:center;
+  }
+  .thanks.active{display:flex}
+  .thanks-card{max-width:680px;width:100%}
+  .thanks .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.5px;
+    margin-bottom:18px;text-transform:uppercase;
+  }
+  .thanks .badge.ok{background:rgba(25,195,125,.15);color:#19c37d;border:1px solid rgba(25,195,125,.4)}
+  .thanks .badge.no{background:rgba(255,43,94,.15);color:#ff5b86;border:1px solid rgba(255,43,94,.4)}
+  .thanks h2{
+    font-size:clamp(28px,4.4vw,44px);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;
+  }
+  .thanks h2 .hi{
+    background:linear-gradient(135deg,var(--cyan),#7afff0);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .thanks h2 .lo{
+    background:linear-gradient(135deg,#ff5b86,#ffd23f);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .thanks p{font-size:clamp(15px,2.2vw,18px);line-height:1.6;color:#cfd6df;margin-bottom:14px}
+  .thanks ul{list-style:none;padding:0;margin:18px auto 22px;max-width:480px;text-align:left}
+  .thanks ul li{
+    padding:10px 14px;margin-bottom:8px;border-radius:10px;
+    background:rgba(63,248,227,.06);border:1px solid rgba(63,248,227,.2);
+    color:#e6ecf3;font-size:14.5px;
+  }
+  .thanks .ok-glow{
+    border-radius:18px;padding:36px 28px;
+    background:radial-gradient(60% 60% at 50% 0%,rgba(63,248,227,.18),transparent 70%),#080808;
+    border:1px solid rgba(63,248,227,.25);
+  }
+  .thanks .no-glow{
+    border-radius:18px;padding:36px 28px;
+    background:radial-gradient(60% 60% at 50% 0%,rgba(255,43,94,.18),transparent 70%),#080808;
+    border:1px solid rgba(255,43,94,.25);
+  }
+
+  /* footer disclaimer */
+  .foot{padding:24px 20px;text-align:center;color:#6b7480;font-size:12px}
+
+  /* ============== RESPONSIVE ============== */
+  @media (max-width:600px){
+    .hero{padding:32px 16px 48px}
+    .cta{padding:16px 24px}
+    .card{padding:20px 16px 24px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== TOP BAR ============== -->
+<div class="topbar">Solo Para Negocios Ecommerce Contra Entrega Que Venden Por Shopify</div>
+
+<!-- ============== STEP 1: HERO + VIDEO + CTA ============== -->
+<section class="hero" id="step1">
+  <div class="container">
+    <h1 class="h1">Pauta Tus Productos <b>Black</b> O Prohibidos En TikTok Ads Y Escala Las Ventas De Tu Negocio</h1>
+
+    <div class="video-wrap">
+      <div class="video-inner" id="videoInner">
+        <!-- ========== REEMPLAZA AQUÍ POR TU VIDEO ==========
+             Opción 1 (YouTube):
+             <iframe src="https://www.youtube.com/embed/TU_VIDEO_ID?rel=0" allowfullscreen></iframe>
+
+             Opción 2 (Vimeo):
+             <iframe src="https://player.vimeo.com/video/TU_VIDEO_ID" allowfullscreen></iframe>
+
+             Opción 3 (MP4 propio):
+             <video controls poster="poster.jpg"><source src="video.mp4" type="video/mp4"></video>
+        ===================================================== -->
+        <div class="video-placeholder" role="img" aria-label="Espacio para tu video VSL">
+          <div class="play" aria-hidden="true"></div>
+          <div class="hint">Reemplaza este bloque por el embed de tu video (YouTube, Vimeo o MP4)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-wrap">
+      <button class="cta" id="goToForm" type="button">
+        AGENDA TU LLAMADA AQUÍ
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============== STEP 2: QUALIFICATION FORM ============== -->
+<section class="form-section" id="step2">
+  <div class="form-head">
+    <h2>Agenda Tu Llamada Aquí Abajo</h2>
+    <div class="alert"><b>ATENCIÓN:</b> Solo Para Negocios Ecommerce Contra Entrega Que Venden Por Shopify</div>
+  </div>
+
+  <div class="card">
+    <button class="back" id="backToHero" aria-label="Volver">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    </button>
+
+    <!-- Meeting summary -->
+    <div class="meeting">
+      <div><span>⏱</span><span>45 min</span></div>
+      <div><span>📅</span><span id="meetingDate">10:30 AM - 11:15 AM</span></div>
+      <div><span>🌐</span><span>America/Bogota (GMT-5)</span></div>
+      <div><span>📝</span><span class="desc">En esta reunión analizaremos la situación actual y si nuestra solución se adapta a tus necesidades veremos la posibilidad de comenzar a trabajar juntos. <a href="#" id="showMore">Mostrar más</a></span></div>
+    </div>
+
+    <div class="progress"><span id="progressBar"></span></div>
+
+    <form id="qualForm" novalidate>
+      <!-- STEP A: Nombre -->
+      <div class="step active" data-step="1">
+        <div class="step-title">Tus datos personales</div>
+        <div class="field">
+          <label>Nombre <em>*</em></label>
+          <input type="text" name="nombre" autocomplete="given-name" required />
+          <div class="err">Ingresa tu nombre</div>
+        </div>
+        <div class="field">
+          <label>Apellido <em>*</em></label>
+          <input type="text" name="apellido" autocomplete="family-name" required />
+          <div class="err">Ingresa tu apellido</div>
+        </div>
+      </div>
+
+      <!-- STEP B: WhatsApp -->
+      <div class="step" data-step="2">
+        <div class="step-title">¿Cuál es tu WhatsApp?</div>
+        <div class="field">
+          <label>WhatsApp <em>*</em></label>
+          <div class="phone">
+            <div class="country">
+              <span class="flag" id="flag">🇵🇪</span>
+              <select id="country" name="country">
+                <option value="+51" data-flag="🇵🇪" selected>PE +51</option>
+                <option value="+57" data-flag="🇨🇴">CO +57</option>
+                <option value="+52" data-flag="🇲🇽">MX +52</option>
+                <option value="+54" data-flag="🇦🇷">AR +54</option>
+                <option value="+56" data-flag="🇨🇱">CL +56</option>
+                <option value="+593" data-flag="🇪🇨">EC +593</option>
+                <option value="+58" data-flag="🇻🇪">VE +58</option>
+                <option value="+591" data-flag="🇧🇴">BO +591</option>
+                <option value="+595" data-flag="🇵🇾">PY +595</option>
+                <option value="+598" data-flag="🇺🇾">UY +598</option>
+                <option value="+507" data-flag="🇵🇦">PA +507</option>
+                <option value="+506" data-flag="🇨🇷">CR +506</option>
+                <option value="+503" data-flag="🇸🇻">SV +503</option>
+                <option value="+502" data-flag="🇬🇹">GT +502</option>
+                <option value="+1" data-flag="🇺🇸">US +1</option>
+                <option value="+34" data-flag="🇪🇸">ES +34</option>
+              </select>
+            </div>
+            <input type="tel" name="whatsapp" placeholder="982 295 611" inputmode="tel" required />
+          </div>
+          <div class="err">Ingresa un número válido</div>
+        </div>
+      </div>
+
+      <!-- STEP C: Email -->
+      <div class="step" data-step="3">
+        <div class="step-title">Tu correo electrónico</div>
+        <div class="field">
+          <label>Email <em>*</em></label>
+          <input type="email" name="email" autocomplete="email" placeholder="tucorreo@gmail.com" required />
+          <div class="err">Ingresa un email válido</div>
+        </div>
+      </div>
+
+      <!-- STEP D: Anuncios -->
+      <div class="step" data-step="4">
+        <div class="step-title">¿Has realizado anuncios alguna vez? <em style="color:#1d6cf4">*</em></div>
+        <div class="radios" data-name="anuncios">
+          <label><input type="radio" name="anuncios" value="no" /><span>No, nunca</span></label>
+          <label><input type="radio" name="anuncios" value="si" /><span>Si, he realizado publicidad</span></label>
+        </div>
+        <div class="err" style="margin-top:8px">Selecciona una opción</div>
+      </div>
+
+      <!-- STEP E: Ecommerce -->
+      <div class="step" data-step="5">
+        <div class="step-title">¿Tienes un negocio o Ecommerce? <em style="color:#1d6cf4">*</em></div>
+        <div class="radios" data-name="ecommerce">
+          <label><input type="radio" name="ecommerce" value="no_se" /><span>No sé qué es Ecommerce</span></label>
+          <label><input type="radio" name="ecommerce" value="no" /><span>No tengo negocio</span></label>
+          <label><input type="radio" name="ecommerce" value="si" /><span>Si, tengo un negocio</span></label>
+        </div>
+        <div class="err" style="margin-top:8px">Selecciona una opción</div>
+      </div>
+
+      <!-- STEP F: Presupuesto -->
+      <div class="step" data-step="6">
+        <div class="step-title">¿Cuál es tu presupuesto mensual para anuncios? <em style="color:#1d6cf4">*</em></div>
+        <div class="radios" data-name="presupuesto">
+          <label><input type="radio" name="presupuesto" value="0" /><span>No invierto en publicidad</span></label>
+          <label><input type="radio" name="presupuesto" value="1-500" /><span>Entre $1 a $500 al mes</span></label>
+          <label><input type="radio" name="presupuesto" value="500-2000" /><span>Entre $500 a $2.000 al mes</span></label>
+          <label><input type="radio" name="presupuesto" value="2000-5000" /><span>Entre $2.000 a $5.000 al mes</span></label>
+          <label><input type="radio" name="presupuesto" value="5000+" /><span>Más de $5.000 al mes</span></label>
+        </div>
+        <div class="err" style="margin-top:8px">Selecciona una opción</div>
+      </div>
+
+      <!-- STEP G: Compromiso -->
+      <div class="step" data-step="7">
+        <div class="step-title">Compromiso de asistencia <em style="color:#1d6cf4">*</em></div>
+        <div class="commitment">
+          Recibimos muchas llamadas cada día (las hacemos por Google Meet), por lo que agendar implica un compromiso de nuestro tiempo y el tuyo. Dicho esto, <b>¿te comprometes a ser puntual y asistir a la llamada?</b>
+          <label class="check">
+            <input type="checkbox" name="compromiso" id="compromiso" />
+            <span>Entiendo que la llamada es por Google Meet. Me comprometo a asistir y ser puntual</span>
+          </label>
+        </div>
+        <div class="err" style="margin-top:8px">Debes aceptar el compromiso para continuar</div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        <button type="button" class="btn btn-ghost" id="prevBtn" style="display:none">Atrás</button>
+        <button type="button" class="btn btn-primary" id="nextBtn">Continuar</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none">Agendar Llamada</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ============== STEP 3: THANK YOU (QUALIFIED) ============== -->
+<section class="thanks" id="thanksOk">
+  <div class="thanks-card ok-glow">
+    <div class="badge ok">✓ Calificado</div>
+    <h2>¡Felicidades, <span class="hi">eres apto</span> para trabajar con Holistic Marketing!</h2>
+    <p>Has sido <b>admitido</b> al proceso de la agencia. Tu perfil cumple con los requisitos para escalar tus ventas con TikTok Ads.</p>
+    <ul>
+      <li><b>1.</b> Recibirás un mensaje por WhatsApp en los próximos minutos para confirmar tu llamada.</li>
+      <li><b>2.</b> Te enviaremos el link de Google Meet al correo que registraste.</li>
+      <li><b>3.</b> Prepara tu información de ventas y métricas actuales — la llamada dura 45 min.</li>
+    </ul>
+    <p style="color:var(--cyan);font-weight:700">Nos vemos en la llamada. Sé puntual.</p>
+    <!-- Si más adelante quieres embeber Calendly aquí, agrega:
+         <iframe src="https://calendly.com/tu-usuario/45min" width="100%" height="700" frameborder="0"></iframe> -->
+  </div>
+</section>
+
+<!-- ============== STEP 3: THANK YOU (NOT QUALIFIED) ============== -->
+<section class="thanks" id="thanksNo">
+  <div class="thanks-card no-glow">
+    <div class="badge no">✕ No calificado</div>
+    <h2>Qué <span class="lo">pena</span>, por ahora no podemos trabajar contigo</h2>
+    <p>Nuestra agencia trabaja exclusivamente con <b>negocios ecommerce contra entrega que venden por Shopify</b> y que ya invierten en publicidad pagada con un presupuesto mínimo.</p>
+    <p>En base a tus respuestas, <b>aún no cumples el perfil</b> que necesitamos para garantizar resultados. Esto no significa que tu negocio no tenga potencial — significa que aún no es el momento adecuado para nosotros.</p>
+    <ul>
+      <li><b>Recomendación:</b> Lanza tu primer ecommerce y haz tus primeras ventas orgánicas.</li>
+      <li><b>Recomendación:</b> Empieza con un presupuesto pequeño en publicidad y aprende los fundamentos.</li>
+      <li><b>Recomendación:</b> Cuando tu negocio facture consistentemente, vuelve a aplicar.</li>
+    </ul>
+    <p style="color:#ffd23f;font-weight:700">Te deseamos muchísimo éxito en tu camino.</p>
+  </div>
+</section>
+
+<div class="foot">© Holistic Marketing — Todos los derechos reservados.</div>
+
+<script>
+/* ===================== APP STATE ===================== */
+const TOTAL_STEPS = 7;
+const state = { step: 1, answers: {} };
+
+const $  = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
+
+/* ===================== NAV: HERO -> FORM ===================== */
+$('#goToForm').addEventListener('click', ()=>{
+  $('#step1').style.display = 'none';
+  $('#step2').classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
+});
+$('#backToHero').addEventListener('click', ()=>{
+  $('#step2').classList.remove('active');
+  $('#step1').style.display = 'block';
+  window.scrollTo({top:0, behavior:'instant'});
+});
+
+/* ===================== FLAG ON COUNTRY CHANGE ===================== */
+$('#country').addEventListener('change', e=>{
+  const opt = e.target.options[e.target.selectedIndex];
+  $('#flag').textContent = opt.dataset.flag || '🌐';
+});
+
+/* ===================== RADIO VISUAL CHECKED ===================== */
+$$('.radios').forEach(group=>{
+  group.addEventListener('change', ()=>{
+    $$('label', group).forEach(l=> l.classList.toggle('checked', $('input',l).checked));
+  });
+});
+
+/* ===================== MEETING DATE ===================== */
+(function setMeetingDate(){
+  const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const d = new Date(); d.setDate(d.getDate()+1);
+  const txt = `10:30 AM - 11:15 AM, ${days[d.getDay()]} ${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
+  $('#meetingDate').textContent = txt;
+})();
+
+/* ===================== STEP NAVIGATION ===================== */
+const stepEls = ()=> $$('#qualForm .step');
+const currentStepEl = ()=> $(`#qualForm .step[data-step="${state.step}"]`);
+
+function showStep(n){
+  state.step = n;
+  stepEls().forEach(el=>el.classList.toggle('active', Number(el.dataset.step)===n));
+  $('#prevBtn').style.display = n>1 ? 'inline-block' : 'none';
+  $('#nextBtn').style.display = n<TOTAL_STEPS ? 'inline-block' : 'none';
+  $('#submitBtn').style.display = n===TOTAL_STEPS ? 'inline-block' : 'none';
+  $('#progressBar').style.width = (n/TOTAL_STEPS*100)+'%';
+}
+
+function validateStep(){
+  const el = currentStepEl();
+  // clear errors
+  $$('.field', el).forEach(f=>f.classList.remove('error'));
+  const errs = [];
+
+  // text inputs in this step
+  $$('input[type=text],input[type=email],input[type=tel]', el).forEach(inp=>{
+    if(inp.required){
+      let ok = inp.value.trim().length>0;
+      if(inp.type==='email') ok = ok && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim());
+      if(inp.type==='tel')   ok = ok && inp.value.replace(/\D/g,'').length>=6;
+      if(!ok){ inp.closest('.field').classList.add('error'); errs.push(inp.name); }
+    }
+  });
+
+  // radios
+  $$('.radios', el).forEach(g=>{
+    const name = g.dataset.name;
+    if(name && !$(`input[name="${name}"]:checked`, g)){ errs.push(name); }
+  });
+
+  // commitment checkbox
+  const cb = $('#compromiso', el);
+  if(cb && !cb.checked) errs.push('compromiso');
+
+  // show inline err on radio/commitment groups
+  if(errs.length){
+    const inlineErr = $('.err', el);
+    if(inlineErr && !$('.field.error', el)) inlineErr.style.display='block';
+  }
+  return errs.length===0;
+}
+
+function captureStep(){
+  const el = currentStepEl();
+  $$('input', el).forEach(inp=>{
+    if(inp.type==='radio'){ if(inp.checked) state.answers[inp.name] = inp.value; }
+    else if(inp.type==='checkbox'){ state.answers[inp.name] = inp.checked; }
+    else { state.answers[inp.name] = inp.value.trim(); }
+  });
+  if($('#country', el)) state.answers.country = $('#country', el).value;
+}
+
+$('#nextBtn').addEventListener('click', ()=>{
+  if(!validateStep()) return;
+  captureStep();
+  if(state.step < TOTAL_STEPS) showStep(state.step+1);
+});
+$('#prevBtn').addEventListener('click', ()=>{
+  if(state.step>1) showStep(state.step-1);
+});
+
+/* ===================== SUBMIT + QUALIFICATION LOGIC ===================== */
+$('#qualForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  if(!validateStep()) return;
+  captureStep();
+
+  const a = state.answers;
+
+  // CRITERIOS DE CALIFICACIÓN
+  const cumpleAnuncios   = a.anuncios === 'si';
+  const cumpleEcommerce  = a.ecommerce === 'si';
+  const cumplePresupuesto= ['2000-5000','5000+'].includes(a.presupuesto);
+  const cumpleCompromiso = a.compromiso === true;
+
+  const calificado = cumpleAnuncios && cumpleEcommerce && cumplePresupuesto && cumpleCompromiso;
+
+  // GoHighLevel / webhook integration:
+  // Para enviar los datos a GHL, descomenta y reemplaza la URL del webhook:
+  //
+  // fetch('https://services.leadconnectorhq.com/hooks/TU_WEBHOOK', {
+  //   method:'POST', headers:{'Content-Type':'application/json'},
+  //   body: JSON.stringify({ ...a, calificado })
+  // });
+
+  $('#step2').classList.remove('active');
+  if(calificado){
+    $('#thanksOk').classList.add('active');
+  } else {
+    $('#thanksNo').classList.add('active');
+  }
+  window.scrollTo({top:0, behavior:'instant'});
+});
+
+/* init */
+showStep(1);
+</script>
+</body>
+</html>
