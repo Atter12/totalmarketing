@@ -1,3 +1,4 @@
+/** GET JSON de leads — sin autenticación (mismo criterio que /admin). */
 const { Pool } = require('pg');
 
 let pool;
@@ -18,7 +19,6 @@ module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'x-admin-key, Content-Type');
     return res.status(204).end();
   }
   if (req.method !== 'GET') {
@@ -26,15 +26,8 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'method_not_allowed' });
   }
 
-  const key = req.headers['x-admin-key'];
-  const admin = process.env.ADMIN_KEY;
-  if (!admin || key !== admin) {
-    return res.status(401).json({ error: 'unauthorized' });
-  }
-
   try {
-    const p = getPool();
-    const r = await p.query(
+    const r = await getPool().query(
       `select * from public.leads order by created_at desc limit 1000`
     );
     return res.status(200).json({ leads: r.rows });

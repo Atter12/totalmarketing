@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/admin", "destination": "/api/admin-dashboard" },
+    { "source": "/admin/", "destination": "/api/admin-dashboard" }
+  ],
   "functions": {
     "api/*.js": {
       "memory": 256,
