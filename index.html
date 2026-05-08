@@ -558,11 +558,12 @@ const state = { step: 1, answers: {} };
 const $  = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
 
-/* ===================== PANDA VIDEO (poster + mismo panel, muted) ===================== */
+/* ===================== PANDA VIDEO (poster + mismo panel, con audio) ===================== */
 const LOG = '[Holistic/panda]';
 const PANDA_VIDEO_ID = 'bf52c68b-890f-43b8-b9a7-174dff798000';
+/* smartAutoplay: intenta audio; si el navegador lo bloquea, Panda muestra control para activar sonido */
 const PANDA_EMBED_SRC =
-  `https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/?v=${PANDA_VIDEO_ID}&autoplay=true&muted=true&mutedIndicatorIcon=false`;
+  `https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/?v=${PANDA_VIDEO_ID}&autoplay=true&muted=false&smartAutoplay=true&mutedIndicatorIcon=true`;
 const PANDA_POSTER_PRIMARY =
   `https://cdn.pandavideo.com/vz-d7a47b2c-d9b/${PANDA_VIDEO_ID}/thumbnail.jpg`;
 const PANDA_POSTER_FALLBACK =
@@ -571,13 +572,7 @@ const PANDA_POSTER_FALLBACK =
 (function initPandaPoster(){
   const img = $('#pandaPoster');
   if(!img){ console.warn(LOG,'#pandaPoster no encontrado'); return; }
-  const probe = new Image();
-  probe.onload = ()=>{
-    img.src = 'poster-hd.jpg';
-    console.log(LOG,'Usando poster local poster-hd.jpg (máxima calidad)');
-  };
-  probe.onerror = ()=>{};
-  probe.src = 'poster-hd.jpg';
+  /* poster-hd.jpg: si lo subes al sitio, cambia en el <img> el src a poster-hd.jpg (evitamos 404 en consola) */
   img.addEventListener('load', ()=>{
     console.log(LOG,'Poster cargado:', img.currentSrc || img.src, `${img.naturalWidth}×${img.naturalHeight}px`);
     if(img.naturalWidth > 0 && img.naturalWidth < 120){
