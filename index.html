@@ -291,109 +291,6 @@
   .step.active{display:block;animation:fade .25s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-  /* ============== STEP 3 (THANK YOU) ============== */
-  .thanks{
-    display:none;min-height:100vh;
-    align-items:center;justify-content:center;
-    padding:48px 20px;text-align:center;
-  }
-  .thanks.active{display:flex}
-  .thanks-card{max-width:680px;width:100%}
-  .thanks .badge{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.5px;
-    margin-bottom:18px;text-transform:uppercase;
-  }
-  .thanks .badge.ok{background:rgba(25,195,125,.15);color:#19c37d;border:1px solid rgba(25,195,125,.4)}
-  .thanks .badge.no{background:rgba(255,43,94,.15);color:#ff5b86;border:1px solid rgba(255,43,94,.4)}
-  .thanks h2{
-    font-size:clamp(28px,4.4vw,44px);font-weight:800;line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;
-  }
-  .thanks h2 .hi{
-    background:linear-gradient(135deg,var(--cyan),#7afff0);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-  }
-  .thanks h2 .lo{
-    background:linear-gradient(135deg,#ff5b86,#ffd23f);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-  }
-  .thanks p{font-size:clamp(15px,2.2vw,18px);line-height:1.6;color:#cfd6df;margin-bottom:14px}
-  .thanks ul{list-style:none;padding:0;margin:18px auto 22px;max-width:480px;text-align:left}
-  .thanks ul li{
-    padding:10px 14px;margin-bottom:8px;border-radius:10px;
-    background:rgba(63,248,227,.06);border:1px solid rgba(63,248,227,.2);
-    color:#e6ecf3;font-size:14.5px;
-  }
-  .thanks .ok-glow{
-    border-radius:18px;padding:36px 28px;
-    background:radial-gradient(60% 60% at 50% 0%,rgba(63,248,227,.18),transparent 70%),#080808;
-    border:1px solid rgba(63,248,227,.25);
-  }
-  .thanks .no-glow{
-    border-radius:18px;padding:36px 28px;
-    background:radial-gradient(60% 60% at 50% 0%,rgba(255,43,94,.18),transparent 70%),#080808;
-    border:1px solid rgba(255,43,94,.25);
-  }
-
-  /* WhatsApp countdown (lead apto) */
-  .wa-countdown{
-    margin-top:28px;padding:22px 20px 26px;
-    border-radius:16px;text-align:center;
-    background:linear-gradient(135deg,rgba(63,248,227,.08),rgba(255,43,94,.08));
-    border:1px solid rgba(63,248,227,.35);
-    box-shadow:0 0 40px rgba(63,248,227,.12), 0 0 80px rgba(255,43,94,.08);
-    display:none;
-  }
-  .thanks.active .wa-countdown{display:block}
-  .wa-countdown__title{
-    font-size:clamp(15px,2.4vw,18px);font-weight:800;color:#fff;
-    margin:0 0 14px;letter-spacing:.02em;
-  }
-  .wa-countdown__title em{font-style:normal;color:var(--cyan)}
-  .wa-countdown__track{
-    display:flex;justify-content:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;
-  }
-  .wa-dot{
-    width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
-    font-weight:800;font-size:15px;color:#6b7480;
-    border:2px solid rgba(63,248,227,.25);background:rgba(0,0,0,.35);
-    transition:transform .2s ease, box-shadow .25s ease, color .2s, border-color .2s;
-  }
-  .wa-dot.on{
-    color:#001b18;
-    border-color:rgba(63,248,227,.85);
-    background:linear-gradient(180deg,#7afff0,var(--cyan));
-    box-shadow:0 0 24px rgba(63,248,227,.45);
-    transform:scale(1.08);
-  }
-  .wa-countdown__big{
-    font-size:clamp(52px,14vw,96px);font-weight:900;line-height:1;
-    background:linear-gradient(135deg,var(--cyan),#ff5b86);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 28px rgba(63,248,227,.35));
-    animation:waPulse .9s ease-in-out infinite;
-  }
-  @keyframes waPulse{
-    50%{filter:drop-shadow(0 0 42px rgba(255,43,94,.35))}
-  }
-  .wa-countdown__hint{margin:12px 0 0;font-size:14px;color:#9aa3ad;line-height:1.45}
-  .wa-countdown__lets{margin-top:10px;font-size:clamp(16px,2.6vw,22px);font-weight:900;
-    background:linear-gradient(90deg,var(--cyan),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .wa-countdown__btn{
-    display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;
-    padding:14px 22px;border-radius:999px;font-weight:900;font-size:15px;
-    color:#001b18;text-decoration:none;
-    background:linear-gradient(180deg,#7afff0,var(--cyan));
-    box-shadow:0 12px 36px rgba(63,248,227,.4);
-    transition:transform .15s ease, box-shadow .2s ease;
-  }
-  .wa-countdown__btn:hover{transform:translateY(-2px);box-shadow:0 18px 48px rgba(63,248,227,.55)}
-  .wa-countdown__btn--ghost{
-    margin-top:10px;background:transparent;color:var(--cyan);
-    border:1px solid rgba(63,248,227,.45);box-shadow:none;font-weight:700;
-  }
-  .wa-countdown__btn--ghost:hover{color:#fff;border-color:var(--cyan)}
-
   /* footer disclaimer */
   .foot{padding:24px 20px;text-align:center;color:#6b7480;font-size:12px}
 
@@ -571,56 +468,6 @@
   </div>
 </section>
 
-<!-- ============== STEP 3: THANK YOU (QUALIFIED) ============== -->
-<section class="thanks" id="thanksOk">
-  <div class="thanks-card ok-glow">
-    <div class="badge ok">✓ Calificado</div>
-    <h2>¡Felicidades, <span class="hi">eres apto</span> para trabajar con Holistic Marketing!</h2>
-    <p>Has sido <b>admitido</b> al proceso de la agencia. Tu perfil cumple con los requisitos para escalar tus ventas con TikTok Ads.</p>
-    <ul>
-      <li><b>1.</b> Recibirás un mensaje por WhatsApp en los próximos minutos para confirmar tu llamada.</li>
-      <li><b>2.</b> Te enviaremos el link de Google Meet al correo que registraste.</li>
-      <li><b>3.</b> Prepara tu información de ventas y métricas actuales — la llamada dura 45 min.</li>
-    </ul>
-    <p style="color:var(--cyan);font-weight:700">Nos vemos en la llamada. Sé puntual.</p>
-    <p style="margin-top:14px"><a href="https://www.totalmarketing.online/apto" style="color:var(--cyan);font-weight:700;text-decoration:underline">https://www.totalmarketing.online/apto</a></p>
-
-    <div class="wa-countdown" id="waCountdown" aria-live="polite">
-      <p class="wa-countdown__title">En <em>4 segundos</em> enviamos tu lead detallado a la agencia por WhatsApp…</p>
-      <div class="wa-countdown__track">
-        <span class="wa-dot" data-step="1">1</span>
-        <span class="wa-dot" data-step="2">2</span>
-        <span class="wa-dot" data-step="3">3</span>
-        <span class="wa-dot" data-step="4">4</span>
-      </div>
-      <div class="wa-countdown__big" id="waCountBig">1</div>
-      <p class="wa-countdown__hint" id="waCountHint">Sincronizando datos del formulario con Holistic Marketing…</p>
-      <p class="wa-countdown__lets" id="waLetsGo" hidden>Let's go 🚀</p>
-      <a class="wa-countdown__btn" id="waOpenBtn" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir WhatsApp con el mensaje listo</a>
-      <a class="wa-countdown__btn wa-countdown__btn--ghost" id="waOpenUsername" href="https://wa.me/victorminas28" target="_blank" rel="noopener noreferrer" hidden>Alternativa: wa.me/victorminas28</a>
-    </div>
-    <!-- Si más adelante quieres embeber Calendly aquí, agrega:
-         <iframe src="https://calendly.com/tu-usuario/45min" width="100%" height="700" frameborder="0"></iframe> -->
-  </div>
-</section>
-
-<!-- ============== STEP 3: THANK YOU (NOT QUALIFIED) ============== -->
-<section class="thanks" id="thanksNo">
-  <div class="thanks-card no-glow">
-    <div class="badge no">✕ Denegado</div>
-    <h2>Qué <span class="lo">pena</span>, por ahora no podemos trabajar contigo</h2>
-    <p>Nuestra agencia trabaja exclusivamente con <b>negocios ecommerce contra entrega que venden por Shopify</b> y que ya invierten en publicidad pagada con un presupuesto mínimo.</p>
-    <p>En base a tus respuestas, <b>aún no cumples el perfil</b> que necesitamos para garantizar resultados. Esto no significa que tu negocio no tenga potencial — significa que aún no es el momento adecuado para nosotros.</p>
-    <ul>
-      <li><b>Recomendación:</b> Lanza tu primer ecommerce y haz tus primeras ventas orgánicas.</li>
-      <li><b>Recomendación:</b> Empieza con un presupuesto pequeño en publicidad y aprende los fundamentos.</li>
-      <li><b>Recomendación:</b> Cuando tu negocio facture consistentemente, vuelve a aplicar.</li>
-    </ul>
-    <p style="color:#ffd23f;font-weight:700">Te deseamos muchísimo éxito en tu camino.</p>
-    <p style="margin-top:14px"><a href="https://www.totalmarketing.online/denegado" style="color:#ffd23f;font-weight:700;text-decoration:underline">https://www.totalmarketing.online/denegado</a></p>
-  </div>
-</section>
-
 <div class="foot">© Holistic Marketing — Todos los derechos reservados.</div>
 
 <script>
@@ -688,109 +535,6 @@ function syncWhatsAppHint(){
   }else{
     inp.placeholder = '10 dígitos, ej. 300 123 4567';
   }
-}
-
-/* Lead apto → WhatsApp agencia (+51 984 789 504) */
-const AGENCY_WA_E164 = '51984789504';
-
-function waLabelAnuncios(v){
-  return v === 'si' ? 'Sí, he realizado publicidad (+1 pt)' : 'No, nunca (0 pt)';
-}
-function waLabelEcommerce(v){
-  if(v === 'si') return 'Sí, tengo un negocio (+1 pt)';
-  if(v === 'no_se') return 'No sé qué es ecommerce (0 pt)';
-  return 'No tengo negocio (0 pt)';
-}
-function waLabelPresupuesto(v){
-  const m = {
-    '0':'No invierto en publicidad (0 pt)',
-    '1-500':'Entre $1 a $500 al mes (1 pt)',
-    '500-2000':'Entre $500 a $2.000 al mes (2 pt)',
-    '2000-5000':'Entre $2.000 a $5.000 al mes (3 pt)',
-    '5000+':'Más de $5.000 al mes (5 pt)'
-  };
-  return m[v] || String(v || '—');
-}
-
-function buildAgencyWhatsAppMessage(a, puntos){
-  const dig = String(a.whatsapp || '').replace(/\D/g, '');
-  const lineWa = [a.country || '', dig].filter(Boolean).join(' ').trim() || '—';
-  return [
-    '🔔 *NUEVO LEAD CALIFICADO — APTO*',
-    '_Holistic Marketing · Total Marketing_',
-    '',
-    '✅ *Estado:* APTO (dashboard: ✓ Calificado)',
-    `📊 *Puntuación:* *${puntos}* pts _(mínimo requerido: 3)_`,
-    '',
-    '*Datos de contacto*',
-    `• Nombre: ${a.nombre || '—'}`,
-    `• Apellido: ${a.apellido || '—'}`,
-    `• WhatsApp: ${lineWa}`,
-    `• Email: ${a.email || '—'}`,
-    '',
-    '*Respuestas del filtro*',
-    `• ¿Has realizado anuncios?: ${waLabelAnuncios(a.anuncios)}`,
-    `• ¿Negocio / ecommerce?: ${waLabelEcommerce(a.ecommerce)}`,
-    `• Presupuesto mensual en anuncios: ${waLabelPresupuesto(a.presupuesto)}`,
-    '',
-    '• Compromiso de asistencia a la llamada: *Sí*',
-    '',
-    '—',
-    '📎 *Enlaces / referencia*',
-    '• Landing: https://www.totalmarketing.online',
-    '• Perfil apto: https://www.totalmarketing.online/apto',
-    '• WhatsApp agencia (número): +51 984 789 504',
-    '• Link corto agencia: https://wa.me/victorminas28'
-  ].join('\n');
-}
-
-function buildAgencyWaMeUrl(a, puntos){
-  return `https://wa.me/${AGENCY_WA_E164}?text=${encodeURIComponent(buildAgencyWhatsAppMessage(a, puntos))}`;
-}
-
-function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
-
-async function startQualifiedWaCountdown(a, puntos){
-  const big = $('#waCountBig');
-  const hint = $('#waCountHint');
-  const lets = $('#waLetsGo');
-  const btn = $('#waOpenBtn');
-  const alt = $('#waOpenUsername');
-  const dots = $$('#waCountdown .wa-dot');
-  const url = buildAgencyWaMeUrl(a, puntos);
-  const hints = [
-    'Sincronizando datos del formulario con Holistic Marketing…',
-    'Empaquetando tu perfil APTO y tus respuestas…',
-    'Preparando mensaje detallado para la agencia (+51 984 789 504)…',
-    'Abriendo WhatsApp con todo listo para que solo envíes…'
-  ];
-  if(btn) btn.href = url;
-  if(lets) lets.hidden = true;
-  if(btn) btn.hidden = true;
-  if(alt) alt.hidden = true;
-  dots.forEach(d=> d.classList.remove('on'));
-  for(let n = 1; n <= 4; n++){
-    if(big) big.textContent = String(n);
-    dots.forEach(d=>{
-      d.classList.toggle('on', Number(d.dataset.step) <= n);
-    });
-    if(hint) hint.textContent = hints[n - 1];
-    await sleep(1000);
-  }
-  if(lets) lets.hidden = false;
-  if(hint) hint.textContent = 'Pulsa el botón si WhatsApp no se abrió solo (algunos navegadores bloquean ventanas emergentes).';
-  let opened = false;
-  try{
-    const w = window.open(url, '_blank', 'noopener,noreferrer');
-    opened = !!(w && !w.closed);
-  }catch(_){}
-  if(btn){
-    btn.hidden = false;
-    if(!opened && hint){
-      hint.textContent = 'Ventana emergente bloqueada: pulsa «Abrir WhatsApp con el mensaje listo» para enviar el lead a la agencia.';
-    }
-  }
-  if(alt) alt.hidden = false;
 }
 
 /* ===================== PANDA VIDEO (poster + mismo panel, con audio) ===================== */
@@ -978,34 +722,46 @@ $('#prevBtn').addEventListener('click', ()=>{
 });
 
 /* ===================== SUBMIT + QUALIFICATION LOGIC ===================== */
-$('#qualForm').addEventListener('submit', e=>{
+$('#qualForm').addEventListener('submit', async e=>{
   e.preventDefault();
   if(!validateStep()) return;
   captureStep();
 
   const a = state.answers;
-
-  /* Puntuación: anuncios (0–1) + ecommerce (0–1) + presupuesto (0,1,2,3,5) → Apto si ≥ 3 y compromiso */
   const puntos = scoreAnswers(a);
   const cumpleCompromiso = a.compromiso === true;
   const calificado = puntos >= 3 && cumpleCompromiso;
 
-  // GoHighLevel / webhook integration:
-  // Para enviar los datos a GHL, descomenta y reemplaza la URL del webhook:
-  //
-  // fetch('https://services.leadconnectorhq.com/hooks/TU_WEBHOOK', {
-  //   method:'POST', headers:{'Content-Type':'application/json'},
-  //   body: JSON.stringify({ ...a, calificado, puntos })
-  // });
+  const payload = {
+    nombre: a.nombre,
+    apellido: a.apellido,
+    country: a.country,
+    whatsapp: a.whatsapp,
+    email: a.email,
+    anuncios: a.anuncios,
+    ecommerce: a.ecommerce,
+    presupuesto: a.presupuesto,
+    compromiso: a.compromiso,
+    calificado,
+    puntos
+  };
 
-  $('#step2').classList.remove('active');
-  if(calificado){
-    $('#thanksOk').classList.add('active');
-    startQualifiedWaCountdown(a, puntos);
-  } else {
-    $('#thanksNo').classList.add('active');
+  try{
+    const res = await fetch('/api/submit', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('save');
+  }catch(_){
+    alert('No se pudo guardar tu solicitud. Revisa tu conexión e inténtalo de nuevo.');
+    return;
   }
-  window.scrollTo({top:0, behavior:'instant'});
+
+  sessionStorage.setItem('leadOutcome', JSON.stringify({
+    calificado, puntos, answers: a, ts: Date.now()
+  }));
+  window.location.href = calificado ? '/apto/' : '/denegado/';
 });
 
 /* init */

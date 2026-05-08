@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<title>Calificado — Holistic Marketing</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:#fff;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  :root{
+    --cyan:#3FF8E3;
+    --red:#ff2b5e;
+  }
+  .wrap{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:48px 20px;text-align:center;
+    background:
+      radial-gradient(60% 40% at 50% 0%, rgba(63,248,227,.18), transparent 60%),
+      radial-gradient(60% 40% at 50% 100%, rgba(255,43,94,.18), transparent 60%),
+      #000;
+  }
+  .card{
+    max-width:680px;width:100%;
+    border-radius:18px;padding:36px 28px;
+    background:radial-gradient(60% 60% at 50% 0%,rgba(63,248,227,.18),transparent 70%),#080808;
+    border:1px solid rgba(63,248,227,.25);
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.5px;
+    margin-bottom:18px;text-transform:uppercase;
+    background:rgba(25,195,125,.15);color:#19c37d;border:1px solid rgba(25,195,125,.4);
+  }
+  h1{
+    font-size:clamp(28px,4.4vw,44px);font-weight:800;line-height:1.1;margin-bottom:18px;
+  }
+  .hi{
+    background:linear-gradient(135deg,var(--cyan),#7afff0);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  p,li{font-size:clamp(15px,2.2vw,18px);line-height:1.6;color:#cfd6df;margin-bottom:14px}
+  ul{list-style:none;padding:0;margin:18px auto 22px;max-width:480px;text-align:left}
+  ul li{
+    padding:10px 14px;margin-bottom:8px;border-radius:10px;
+    background:rgba(63,248,227,.06);border:1px solid rgba(63,248,227,.2);
+    color:#e6ecf3;font-size:14.5px;
+  }
+  .link-apto{color:var(--cyan);font-weight:700;text-decoration:underline}
+  .wa-countdown{
+    margin-top:28px;padding:22px 20px 26px;
+    border-radius:16px;text-align:center;
+    background:linear-gradient(135deg,rgba(63,248,227,.08),rgba(255,43,94,.08));
+    border:1px solid rgba(63,248,227,.35);
+    box-shadow:0 0 40px rgba(63,248,227,.12), 0 0 80px rgba(255,43,94,.08);
+  }
+  .wa-countdown__title{font-size:clamp(15px,2.4vw,18px);font-weight:800;margin:0 0 14px}
+  .wa-countdown__title em{font-style:normal;color:var(--cyan)}
+  .wa-countdown__track{display:flex;justify-content:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .wa-dot{
+    width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+    font-weight:800;font-size:15px;color:#6b7480;
+    border:2px solid rgba(63,248,227,.25);background:rgba(0,0,0,.35);
+    transition:transform .2s, box-shadow .25s, color .2s, border-color .2s;
+  }
+  .wa-dot.on{
+    color:#001b18;border-color:rgba(63,248,227,.85);
+    background:linear-gradient(180deg,#7afff0,var(--cyan));
+    box-shadow:0 0 24px rgba(63,248,227,.45);transform:scale(1.08);
+  }
+  .wa-countdown__big{
+    font-size:clamp(52px,14vw,96px);font-weight:900;line-height:1;
+    background:linear-gradient(135deg,var(--cyan),#ff5b86);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:waPulse .9s ease-in-out infinite;
+  }
+  @keyframes waPulse{50%{filter:drop-shadow(0 0 42px rgba(255,43,94,.35))}}
+  .wa-countdown__hint{margin:12px 0 0;font-size:14px;color:#9aa3ad;line-height:1.45}
+  .wa-countdown__lets{margin-top:10px;font-size:clamp(16px,2.6vw,22px);font-weight:900;
+    background:linear-gradient(90deg,var(--cyan),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .wa-countdown__btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;
+    padding:14px 22px;border-radius:999px;font-weight:900;font-size:15px;color:#001b18;text-decoration:none;
+    background:linear-gradient(180deg,#7afff0,var(--cyan));
+    box-shadow:0 12px 36px rgba(63,248,227,.4);
+  }
+  .wa-countdown__btn--ghost{
+    margin-top:10px;background:transparent;color:var(--cyan);
+    border:1px solid rgba(63,248,227,.45);font-weight:700;
+  }
+  .back{margin-top:24px;font-size:14px}
+  .back a{color:#9aa3ad;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="badge">✓ Calificado</div>
+    <h1>¡Felicidades, <span class="hi">eres apto</span> para trabajar con Holistic Marketing!</h1>
+    <p>Has sido <b>admitido</b> al proceso de la agencia. Tu perfil cumple con los requisitos para escalar tus ventas con TikTok Ads.</p>
+    <ul>
+      <li><b>1.</b> Recibirás un mensaje por WhatsApp en los próximos minutos para confirmar tu llamada.</li>
+      <li><b>2.</b> Te enviaremos el link de Google Meet al correo que registraste.</li>
+      <li><b>3.</b> Prepara tu información de ventas y métricas actuales — la llamada dura 45 min.</li>
+    </ul>
+    <p style="color:var(--cyan);font-weight:700">Nos vemos en la llamada. Sé puntual.</p>
+    <p><a class="link-apto" href="https://www.totalmarketing.online/apto">https://www.totalmarketing.online/apto</a></p>
+
+    <div class="wa-countdown" id="waCountdown" aria-live="polite">
+      <p class="wa-countdown__title">En <em>4 segundos</em> preparamos tu mensaje para la agencia por WhatsApp…</p>
+      <div class="wa-countdown__track">
+        <span class="wa-dot" data-step="1">1</span>
+        <span class="wa-dot" data-step="2">2</span>
+        <span class="wa-dot" data-step="3">3</span>
+        <span class="wa-dot" data-step="4">4</span>
+      </div>
+      <div class="wa-countdown__big" id="waCountBig">1</div>
+      <p class="wa-countdown__hint" id="waCountHint"></p>
+      <p class="wa-countdown__lets" id="waLetsGo" hidden>Let's go 🚀</p>
+      <a class="wa-countdown__btn" id="waOpenBtn" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir WhatsApp con el mensaje listo</a>
+      <a class="wa-countdown__btn wa-countdown__btn--ghost" id="waOpenUsername" href="https://wa.me/victorminas28" target="_blank" rel="noopener noreferrer" hidden>Alternativa: wa.me/victorminas28</a>
+    </div>
+
+    <p class="back"><a href="/">← Volver al inicio</a></p>
+  </div>
+</div>
+<script>
+(function(){
+  const AGENCY_WA_E164 = '51984789504';
+  const raw = sessionStorage.getItem('leadOutcome');
+  if(!raw){ window.location.replace('/'); return; }
+  let data;
+  try{ data = JSON.parse(raw); }catch(_){ window.location.replace('/'); return; }
+  if(!data.calificado){ window.location.replace('/denegado/'); return; }
+  const a = data.answers || {};
+
+  function waLabelAnuncios(v){
+    return v === 'si' ? 'Sí, he realizado publicidad' : 'No, nunca';
+  }
+  function waLabelEcommerce(v){
+    if(v === 'si') return 'Sí, tengo un negocio';
+    if(v === 'no_se') return 'No sé qué es ecommerce';
+    return 'No tengo negocio';
+  }
+  function waLabelPresupuesto(v){
+    const m = {
+      '0':'No invierto en publicidad',
+      '1-500':'Entre $1 a $500 al mes',
+      '500-2000':'Entre $500 a $2.000 al mes',
+      '2000-5000':'Entre $2.000 a $5.000 al mes',
+      '5000+':'Más de $5.000 al mes'
+    };
+    return m[v] || String(v || '—');
+  }
+
+  function buildAgencyWhatsAppMessage(){
+    const dig = String(a.whatsapp || '').replace(/\D/g, '');
+    const lineWa = [a.country || '', dig].filter(Boolean).join(' ').trim() || '—';
+    return [
+      '🔔 *NUEVO LEAD CALIFICADO — APTO*',
+      '_Holistic Marketing · Total Marketing_',
+      '',
+      '✅ *Estado:* APTO (✓ Calificado)',
+      '',
+      '*Datos de contacto*',
+      `• Nombre: ${a.nombre || '—'}`,
+      `• Apellido: ${a.apellido || '—'}`,
+      `• WhatsApp: ${lineWa}`,
+      `• Email: ${a.email || '—'}`,
+      '',
+      '*Respuestas del filtro*',
+      `• ¿Has realizado anuncios?: ${waLabelAnuncios(a.anuncios)}`,
+      `• ¿Negocio / ecommerce?: ${waLabelEcommerce(a.ecommerce)}`,
+      `• Presupuesto mensual en anuncios: ${waLabelPresupuesto(a.presupuesto)}`,
+      '',
+      '• Compromiso de asistencia a la llamada: *Sí*',
+      '',
+      '—',
+      '📎 *Referencias*',
+      '• Landing: https://www.totalmarketing.online',
+      '• Esta página: https://www.totalmarketing.online/apto',
+      '• WhatsApp agencia: +51 984 789 504',
+      '• Link corto: https://wa.me/victorminas28'
+    ].join('\n');
+  }
+
+  function buildWaUrl(){
+    return 'https://wa.me/' + AGENCY_WA_E164 + '?text=' + encodeURIComponent(buildAgencyWhatsAppMessage());
+  }
+
+  const $ = (s)=>document.querySelector(s);
+  const $$ = (s)=>Array.from(document.querySelectorAll(s));
+
+  async function run(){
+    const big = $('#waCountBig');
+    const hint = $('#waCountHint');
+    const lets = $('#waLetsGo');
+    const btn = $('#waOpenBtn');
+    const alt = $('#waOpenUsername');
+    const dots = $$('.wa-dot');
+    const url = buildWaUrl();
+    const hints = [
+      'Sincronizando datos con Holistic Marketing…',
+      'Empaquetando tu perfil y respuestas…',
+      'Preparando mensaje para la agencia (+51 984 789 504)…',
+      'Abriendo WhatsApp con el texto listo para enviar…'
+    ];
+    if(btn) btn.href = url;
+    if(lets) lets.hidden = true;
+    if(btn) btn.hidden = true;
+    if(alt) alt.hidden = true;
+    dots.forEach(d=> d.classList.remove('on'));
+    for(let n = 1; n <= 4; n++){
+      if(big) big.textContent = String(n);
+      dots.forEach(d=> d.classList.toggle('on', Number(d.dataset.step) <= n));
+      if(hint) hint.textContent = hints[n - 1];
+      await new Promise(r=>setTimeout(r, 1000));
+    }
+    if(lets) lets.hidden = false;
+    if(hint) hint.textContent = 'Pulsa el botón si WhatsApp no se abrió (ventanas emergentes bloqueadas).';
+    let opened = false;
+    try{
+      const w = window.open(url, '_blank', 'noopener,noreferrer');
+      opened = !!(w && !w.closed);
+    }catch(_){}
+    if(btn){ btn.hidden = false; if(!opened && hint){
+      hint.textContent = 'Ventana emergente bloqueada: pulsa «Abrir WhatsApp con el mensaje listo».';
+    }}
+    if(alt) alt.hidden = false;
+  }
+  run();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<title>No calificado — Holistic Marketing</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:#fff;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  :root{--cyan:#3FF8E3;--gold:#ffd23f}
+  .wrap{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:48px 20px;text-align:center;
+    background:
+      radial-gradient(60% 40% at 50% 0%, rgba(255,43,94,.15), transparent 60%),
+      radial-gradient(60% 40% at 50% 100%, rgba(255,210,63,.08), transparent 60%),
+      #000;
+  }
+  .card{
+    max-width:680px;width:100%;
+    border-radius:18px;padding:36px 28px;
+    background:radial-gradient(60% 60% at 50% 0%,rgba(255,43,94,.18),transparent 70%),#080808;
+    border:1px solid rgba(255,43,94,.25);
+  }
+  .badge{
+    display:inline-flex;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;
+    margin-bottom:18px;text-transform:uppercase;
+    background:rgba(255,43,94,.15);color:#ff5b86;border:1px solid rgba(255,43,94,.4);
+  }
+  h1{font-size:clamp(26px,4vw,40px);font-weight:800;line-height:1.1;margin-bottom:18px}
+  .lo{background:linear-gradient(135deg,#ff5b86,#ffd23f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  p,li{font-size:clamp(15px,2.2vw,18px);line-height:1.6;color:#cfd6df;margin-bottom:14px}
+  ul{list-style:none;padding:0;margin:18px auto;text-align:left;max-width:480px;margin-left:auto;margin-right:auto}
+  ul li{padding:10px 14px;margin-bottom:8px;border-radius:10px;background:rgba(255,43,94,.06);border:1px solid rgba(255,43,94,.2);font-size:14.5px}
+  .link{color:var(--gold);font-weight:700;text-decoration:underline}
+  .back{margin-top:24px;font-size:14px}
+  .back a{color:#9aa3ad;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="badge">✕ Denegado</div>
+    <h1>Qué <span class="lo">pena</span>, por ahora no podemos trabajar contigo</h1>
+    <p>Nuestra agencia trabaja exclusivamente con <b>negocios ecommerce contra entrega que venden por Shopify</b> y que ya invierten en publicidad pagada con un presupuesto mínimo.</p>
+    <p>En base a tus respuestas, <b>aún no cumples el perfil</b> que necesitamos para garantizar resultados. Esto no significa que tu negocio no tenga potencial — significa que aún no es el momento adecuado para nosotros.</p>
+    <ul>
+      <li><b>Recomendación:</b> Lanza tu primer ecommerce y haz tus primeras ventas orgánicas.</li>
+      <li><b>Recomendación:</b> Empieza con un presupuesto pequeño en publicidad y aprende los fundamentos.</li>
+      <li><b>Recomendación:</b> Cuando tu negocio facture consistentemente, vuelve a aplicar.</li>
+    </ul>
+    <p style="color:var(--gold);font-weight:700">Te deseamos muchísimo éxito en tu camino.</p>
+    <p><a class="link" href="https://www.totalmarketing.online/denegado">https://www.totalmarketing.online/denegado</a></p>
+    <p class="back"><a href="/">← Volver al inicio</a></p>
+  </div>
+</div>
+<script>
+(function(){
+  const raw = sessionStorage.getItem('leadOutcome');
+  if(raw){
+    try{
+      const d = JSON.parse(raw);
+      if(d.calificado) window.location.replace('/apto/');
+    }catch(_){}
+  }
+})();
+</script>
+</body>
+</html>
