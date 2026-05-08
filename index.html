@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>Holistic Marketing — Pauta Productos Black en TikTok Ads</title>
 <meta name="description" content="Solo para negocios ecommerce contra entrega que venden por Shopify. Agenda tu llamada con Holistic Marketing." />
 <style>
@@ -120,6 +121,7 @@
   }
   .panda-frame-wrap.has-iframe{
     pointer-events:auto;
+    z-index:10;
   }
   .panda-launch{
     position:absolute;inset:0;z-index:3;
@@ -569,14 +571,13 @@ const PANDA_POSTER_FALLBACK =
 (function initPandaPoster(){
   const img = $('#pandaPoster');
   if(!img){ console.warn(LOG,'#pandaPoster no encontrado'); return; }
-  fetch('poster-hd.jpg', { method:'HEAD', cache:'no-store' })
-    .then(r=>{
-      if(r.ok){
-        img.src = 'poster-hd.jpg';
-        console.log(LOG,'Usando poster local poster-hd.jpg (máxima calidad)');
-      }
-    })
-    .catch(()=>{});
+  const probe = new Image();
+  probe.onload = ()=>{
+    img.src = 'poster-hd.jpg';
+    console.log(LOG,'Usando poster local poster-hd.jpg (máxima calidad)');
+  };
+  probe.onerror = ()=>{};
+  probe.src = 'poster-hd.jpg';
   img.addEventListener('load', ()=>{
     console.log(LOG,'Poster cargado:', img.currentSrc || img.src, `${img.naturalWidth}×${img.naturalHeight}px`);
     if(img.naturalWidth > 0 && img.naturalWidth < 120){
@@ -612,16 +613,23 @@ const PANDA_POSTER_FALLBACK =
       const iframe = document.createElement('iframe');
       iframe.src = PANDA_EMBED_SRC;
       iframe.title = 'Video VSL';
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
       iframe.setAttribute(
         'allow',
         'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen'
       );
-      iframe.loading = 'eager';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = '0';
+      iframe.addEventListener('load', ()=>{
+        console.log(LOG,'iframe: evento load (player Panda debería estar listo)');
+      });
       wrap.appendChild(iframe);
       wrap.classList.add('has-iframe');
       wrap.removeAttribute('aria-hidden');
-      launch.hidden = true;
-      console.log(LOG,'iframe montado:', PANDA_EMBED_SRC);
+      launch.remove();
+      console.log(LOG,'iframe montado + overlay retirado del DOM (referrer→Panda OK)');
+      console.log(LOG,'Si sigue en negro: en Panda Video → seguridad / dominios permitidos → añade totalmarketing.online');
     }catch(err){
       console.error(LOG,'Error al crear iframe:', err);
       started = false;
@@ -630,9 +638,6 @@ const PANDA_POSTER_FALLBACK =
   launch.addEventListener('click', e=>{
     console.log(LOG,'click en launch', e.target?.className);
     start('click');
-  });
-  launch.addEventListener('pointerdown', e=>{
-    console.log(LOG,'pointerdown', e.pointerType);
   });
   launch.addEventListener('keydown', e=>{
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); start('keyboard'); }
