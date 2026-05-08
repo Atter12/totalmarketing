@@ -113,6 +113,37 @@
     font-size:13px;color:#9aa3ad;
   }
 
+  /* Panda: poster + click -> iframe en la misma caja */
+  .panda-frame-wrap{
+    position:absolute;inset:0;z-index:1;background:#000;
+  }
+  .panda-launch{
+    position:absolute;inset:0;z-index:2;
+    display:block;width:100%;height:100%;margin:0;padding:0;
+    border:0;background:transparent;cursor:pointer;color:inherit;
+  }
+  .panda-poster{
+    position:absolute;inset:0;width:100%;height:100%;
+    object-fit:cover;
+  }
+  .panda-launch .panda-playbtn{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:84px;height:84px;border-radius:50%;
+    background:rgba(255,255,255,.12);
+    border:2px solid rgba(255,255,255,.7);
+    display:grid;place-items:center;
+    backdrop-filter:blur(4px);pointer-events:none;
+  }
+  .panda-launch .panda-playbtn::after{
+    content:"";display:block;
+    width:0;height:0;
+    border-left:22px solid #fff;
+    border-top:14px solid transparent;
+    border-bottom:14px solid transparent;
+    margin-left:6px;
+  }
+  .panda-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
   /* CTA */
   .cta-wrap{display:flex;justify-content:center;margin-top:36px}
   .cta{
@@ -310,20 +341,20 @@
 
     <div class="video-wrap">
       <div class="video-inner" id="videoInner">
-        <!-- ========== REEMPLAZA AQUÍ POR TU VIDEO ==========
-             Opción 1 (YouTube):
-             <iframe src="https://www.youtube.com/embed/TU_VIDEO_ID?rel=0" allowfullscreen></iframe>
-
-             Opción 2 (Vimeo):
-             <iframe src="https://player.vimeo.com/video/TU_VIDEO_ID" allowfullscreen></iframe>
-
-             Opción 3 (MP4 propio):
-             <video controls poster="poster.jpg"><source src="video.mp4" type="video/mp4"></video>
-        ===================================================== -->
-        <div class="video-placeholder" role="img" aria-label="Espacio para tu video VSL">
-          <div class="play" aria-hidden="true"></div>
-          <div class="hint">Reemplaza este bloque por el embed de tu video (YouTube, Vimeo o MP4)</div>
-        </div>
+        <div class="panda-frame-wrap" id="pandaFrameWrap" aria-hidden="true"></div>
+        <button type="button" class="panda-launch" id="pandaLaunch" aria-label="Reproducir video">
+          <img
+            class="panda-poster"
+            src="https://thumbs.tv.pandavideo.com.br/vz-d7a47b2c-d9b/bf52c68b-890f-43b8-b9a7-174dff798000/cover.jpg"
+            alt=""
+            width="1280"
+            height="720"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+          <span class="panda-playbtn" aria-hidden="true"></span>
+        </button>
       </div>
     </div>
 
@@ -516,6 +547,37 @@ const state = { step: 1, answers: {} };
 
 const $  = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
+
+/* ===================== PANDA VIDEO (poster + mismo panel, muted) ===================== */
+const PANDA_EMBED_SRC =
+  'https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/?v=bf52c68b-890f-43b8-b9a7-174dff798000&autoplay=true&muted=true&mutedIndicatorIcon=false';
+
+(function initPandaLaunch(){
+  const launch = $('#pandaLaunch');
+  const wrap = $('#pandaFrameWrap');
+  if(!launch || !wrap) return;
+  let started = false;
+  function start(){
+    if(started) return;
+    started = true;
+    const iframe = document.createElement('iframe');
+    iframe.src = PANDA_EMBED_SRC;
+    iframe.title = 'Video VSL';
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute(
+      'allow',
+      'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen'
+    );
+    iframe.loading = 'eager';
+    wrap.appendChild(iframe);
+    wrap.removeAttribute('aria-hidden');
+    launch.hidden = true;
+  }
+  launch.addEventListener('click', start);
+  launch.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); start(); }
+  });
+})();
 
 /* ===================== NAV: HERO -> FORM ===================== */
 $('#goToForm').addEventListener('click', ()=>{
