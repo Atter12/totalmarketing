@@ -139,6 +139,9 @@ module.exports = async (req, res) => {
       if (/only send testing emails|testing emails to your own/i.test(msg)) {
         hint =
           'Sigues usando el remitente de prueba. En Vercel define RESEND_FROM o EMAIL_FROM con un correo de tu dominio ya verificado en Resend (ej. hola@tudominio.com), sin saltos de línea. Redeploy y prueba de nuevo.';
+      } else if (/domain is not verified|not verified.*domain/i.test(msg)) {
+        hint =
+          'El dominio del correo remitente (lo que va después de @ en EMAIL_FROM) no está verificado en tu cuenta de Resend. Entra en https://resend.com/domains → Add domain → pon exactamente ese dominio (ej. enapuros.com) → añade en tu DNS los registros TXT/MX que Resend te muestra → cuando figure “Verified”, vuelve a enviar. EMPLEA un from tipo soporte@enapuros.com en una sola línea en Vercel.';
       } else if (/verify a domain|from.*domain/i.test(msg)) {
         hint =
           'Verifica el dominio en resend.com/domains y en Vercel usa RESEND_FROM o EMAIL_FROM con una dirección de ese dominio.';
