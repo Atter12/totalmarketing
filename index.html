@@ -367,23 +367,8 @@
     <div class="progress"><span id="progressBar"></span></div>
 
     <form id="qualForm" novalidate>
-      <!-- STEP A: Nombre -->
+      <!-- STEP 1: WhatsApp -->
       <div class="step active" data-step="1">
-        <div class="step-title">Tus datos personales</div>
-        <div class="field">
-          <label>Nombre <em>*</em></label>
-          <input type="text" name="nombre" autocomplete="given-name" required />
-          <div class="err">Ingresa tu nombre</div>
-        </div>
-        <div class="field">
-          <label>Apellido <em>*</em></label>
-          <input type="text" name="apellido" autocomplete="family-name" required />
-          <div class="err">Ingresa tu apellido</div>
-        </div>
-      </div>
-
-      <!-- STEP B: WhatsApp -->
-      <div class="step" data-step="2">
         <div class="step-title">¿Cuál es tu WhatsApp?</div>
         <div class="field">
           <label>WhatsApp <em>*</em></label>
@@ -398,6 +383,21 @@
             <input type="tel" name="whatsapp" id="whatsappInput" placeholder="9 dígitos, ej. 912 345 678" inputmode="numeric" autocomplete="tel-national" maxlength="14" required />
           </div>
           <div class="err">Ingresa un número válido</div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Nombre -->
+      <div class="step" data-step="2">
+        <div class="step-title">Tus datos personales</div>
+        <div class="field">
+          <label>Nombre <em>*</em></label>
+          <input type="text" name="nombre" autocomplete="given-name" required />
+          <div class="err">Ingresa tu nombre</div>
+        </div>
+        <div class="field">
+          <label>Apellido <em>*</em></label>
+          <input type="text" name="apellido" autocomplete="family-name" required />
+          <div class="err">Ingresa tu apellido</div>
         </div>
       </div>
 
@@ -477,6 +477,72 @@ const state = { step: 1, answers: {} };
 
 const $  = (s,el=document)=>el.querySelector(s);
 const $$ = (s,el=document)=>Array.from(el.querySelectorAll(s));
+
+/* ===================== SESSION ID (para guardar parciales) ===================== */
+function getSessionId(){
+  try{
+    let sid = localStorage.getItem('hm_sid');
+    if(!sid){
+      if(self.crypto && crypto.randomUUID){ sid = crypto.randomUUID(); }
+      else{
+        sid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c=>{
+          const r = Math.random()*16|0;
+          return (c==='x' ? r : (r&0x3|0x8)).toString(16);
+        });
+      }
+      localStorage.setItem('hm_sid', sid);
+    }
+    return sid;
+  }catch(_){ return ('s_' + Date.now() + '_' + Math.random().toString(36).slice(2,10)); }
+}
+const HM_SID = getSessionId();
+
+function buildPartialPayload(extra){
+  const a = state.answers || {};
+  return Object.assign({
+    session_id: HM_SID,
+    nombre: a.nombre,
+    apellido: a.apellido,
+    country: a.country,
+    whatsapp: a.whatsapp,
+    email: a.email,
+    anuncios: a.anuncios,
+    ecommerce: a.ecommerce,
+    presupuesto: a.presupuesto,
+    compromiso: a.compromiso,
+    last_step: state.step,
+    status: 'incompleto'
+  }, extra || {});
+}
+
+async function savePartial(extra){
+  try{
+    const payload = buildPartialPayload(extra);
+    await fetch('/api/submit', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true
+    });
+  }catch(_){ /* silencioso: no bloquear UX */ }
+}
+
+function trackEvent(type, meta){
+  try{
+    const body = JSON.stringify({ type, session_id: HM_SID, meta: meta || null });
+    if(navigator.sendBeacon){
+      const blob = new Blob([body], { type:'application/json' });
+      navigator.sendBeacon('/api/track', blob);
+      return;
+    }
+    fetch('/api/track', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body,
+      keepalive: true
+    });
+  }catch(_){ /* noop */ }
+}
 
 function isValidEmailStrict(s){
   const t = (s || '').trim();
@@ -620,6 +686,7 @@ const PANDA_POSTER_FALLBACK =
 
 /* ===================== NAV: HERO -> FORM ===================== */
 $('#goToForm').addEventListener('click', ()=>{
+  trackEvent('cta_click', { btn:'goToForm', label:'AGENDA TU LLAMADA AQUÍ' });
   $('#step1').style.display = 'none';
   $('#step2').classList.add('active');
   window.scrollTo({top:0, behavior:'instant'});
@@ -715,6 +782,7 @@ function captureStep(){
 $('#nextBtn').addEventListener('click', ()=>{
   if(!validateStep()) return;
   captureStep();
+  savePartial();
   if(state.step < TOTAL_STEPS) showStep(state.step+1);
 });
 $('#prevBtn').addEventListener('click', ()=>{
@@ -732,25 +800,16 @@ $('#qualForm').addEventListener('submit', async e=>{
   const cumpleCompromiso = a.compromiso === true;
   const calificado = puntos >= 3 && cumpleCompromiso;
 
-  const payload = {
-    nombre: a.nombre,
-    apellido: a.apellido,
-    country: a.country,
-    whatsapp: a.whatsapp,
-    email: a.email,
-    anuncios: a.anuncios,
-    ecommerce: a.ecommerce,
-    presupuesto: a.presupuesto,
-    compromiso: a.compromiso,
-    calificado,
-    puntos
-  };
-
   try{
     const res = await fetch('/api/submit', {
       method:'POST',
       headers:{ 'Content-Type':'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(buildPartialPayload({
+        status:'completo',
+        calificado,
+        puntos,
+        last_step: TOTAL_STEPS
+      }))
     });
     if(!res.ok) throw new Error('save');
   }catch(_){
@@ -762,6 +821,20 @@ $('#qualForm').addEventListener('submit', async e=>{
     calificado, puntos, answers: a, ts: Date.now()
   }));
   window.location.href = calificado ? '/apto/' : '/denegado/';
+});
+
+/* Guarda parcial al cerrar/abandonar la pestaña si ya hay algún dato */
+window.addEventListener('pagehide', ()=>{
+  const a = state.answers || {};
+  const hasAny = a.whatsapp || a.nombre || a.email || a.anuncios || a.ecommerce || a.presupuesto;
+  if(!hasAny) return;
+  try{
+    const body = JSON.stringify(buildPartialPayload());
+    if(navigator.sendBeacon){
+      const blob = new Blob([body], { type:'application/json' });
+      navigator.sendBeacon('/api/submit', blob);
+    }
+  }catch(_){}
 });
 
 /* init */
