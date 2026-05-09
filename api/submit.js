@@ -81,8 +81,8 @@ module.exports = async (req, res) => {
       `insert into public.leads
         (session_id, nombre, apellido, country, whatsapp, email,
          anuncios, ecommerce, presupuesto, compromiso, calificado, puntos,
-         last_step, status, updated_at)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, now())
+         last_step, status)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        on conflict (session_id) do update set
          nombre      = coalesce(excluded.nombre,      public.leads.nombre),
          apellido    = coalesce(excluded.apellido,    public.leads.apellido),
@@ -96,8 +96,7 @@ module.exports = async (req, res) => {
          calificado  = case when excluded.status = 'completo' then excluded.calificado else public.leads.calificado end,
          puntos      = greatest(coalesce(excluded.puntos, 0), coalesce(public.leads.puntos, 0)),
          last_step   = greatest(coalesce(excluded.last_step, 0), coalesce(public.leads.last_step, 0)),
-         status      = case when excluded.status = 'completo' then 'completo' else public.leads.status end,
-         updated_at  = now()
+         status      = case when excluded.status = 'completo' then 'completo' else public.leads.status end
        returning id, status`,
       [
         session_id,

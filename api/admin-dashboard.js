@@ -51,12 +51,16 @@ module.exports = async (req, res) => {
   let ctaClicks = 0;
   try {
     const p = getPool();
-    const [leadsR, ctaR] = await Promise.all([
-      p.query(`select * from public.leads order by coalesce(updated_at, created_at) desc limit 1000`),
-      p.query(`select count(*)::int as c from public.events where type = 'cta_click'`),
-    ]);
-    rows = leadsR.rows;
-    ctaClicks = ctaR.rows[0]?.c ?? 0;
+    rows = (await p.query(`select * from public.leads order by created_at desc limit 1000`)).rows;
+    try {
+      const ctaR = await p.query(
+        `select count(*)::int as c from public.events where type = 'cta_click'`
+      );
+      ctaClicks = ctaR.rows[0]?.c ?? 0;
+    } catch (e2) {
+      console.warn('admin-dashboard: events table missing or error —', e2.message);
+      ctaClicks = 0;
+    }
   } catch (e) {
     console.error('admin-dashboard query', e);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -67,8 +71,9 @@ module.exports = async (req, res) => {
   }
 
   const total = rows.length;
-  const completos = rows.filter((x) => x.status === 'completo').length;
-  const incompletos = total - completos;
+  /* status puede no existir en tablas antiguas: todo lo que no sea explícitamente incompleto cuenta como completo para métricas */
+  const incompletos = rows.filter((x) => x.status === 'incompleto').length;
+  const completos = total - incompletos;
   const calificados = rows.filter((x) => x.calificado === true).length;
   const denegados = completos - calificados;
 
@@ -77,7 +82,7 @@ module.exports = async (req, res) => {
       const nm = [r.nombre, r.apellido].filter(Boolean).join(' ') || '<span style="color:#94a3b8">— sin nombre —</span>';
       const wa = r.whatsapp ? `${r.country || ''} ${r.whatsapp}`.trim() : '<span style="color:#94a3b8">—</span>';
       let estado;
-      if (r.status !== 'completo') {
+      if (r.status === 'incompleto') {
         estado = '<span class="pill pill-incomplete">Incompleto</span>';
       } else if (r.calificado === true) {
         estado = '<span class="pill pill-apto">Apto</span>';
@@ -86,7 +91,7 @@ module.exports = async (req, res) => {
       }
       const lastStep = r.last_step ? `paso ${r.last_step}/7` : '—';
       return `<tr>
-        <td>${escapeHtml(fmtDate(r.updated_at || r.created_at))}</td>
+        <td>${escapeHtml(fmtDate((r.updated_at != null ? r.updated_at : r.created_at)))}</td>
         <td><div class="cell-name">${nm}</div><div class="cell-sub">${lastStep}</div></td>
         <td>${escapeHtml(r.email || '—')}</td>
         <td>${typeof wa === 'string' ? escapeHtml(wa) : wa}</td>
