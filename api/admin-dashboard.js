@@ -114,7 +114,7 @@ module.exports = async (req, res) => {
     .join('');
 
   const html = `<!doctype html>
-<html lang="es" data-theme="dark">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -270,7 +270,7 @@ module.exports = async (req, res) => {
     </div>
     <div class="top-meta">
       <span class="live"><span class="pulse"></span> Actualización automática 60 s</span>
-      <button type="button" class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar entre tema noche y día">☀️</button>
+      <button type="button" class="theme-toggle" id="themeToggle" title="Modo noche" aria-label="Activar modo noche">🌙</button>
       <a href="/" class="nav-link">Volver al sitio</a>
     </div>
   </div>
