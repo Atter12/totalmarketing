@@ -30,9 +30,20 @@ function escapeHtml(s) {
 function fmtDate(iso) {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleString('es-LA', { dateStyle: 'short', timeStyle: 'short' });
+    const d = new Date(iso);
+    const fecha = d.toLocaleDateString('es-CO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const hora = d.toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `${fecha} · ${hora}`;
   } catch {
-    return iso;
+    return String(iso);
   }
 }
 
@@ -66,7 +77,7 @@ module.exports = async (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.statusCode = 500;
     return res.end(
-      `<!doctype html><meta charset="utf-8"><title>Error</title><body style="background:#fff;color:#0b1220;font-family:system-ui,sans-serif;padding:40px"><h1 style="margin-bottom:12px">No se pudo leer la base de datos</h1><p>Verifica que ejecutaste <code style="background:#eef;padding:2px 6px;border-radius:4px">supabase/schema.sql</code> y que <code style="background:#eef;padding:2px 6px;border-radius:4px">DATABASE_URL</code> está configurada en Vercel.</p><p style="margin-top:18px"><a href="/" style="color:#1d6cf4">← Volver al sitio</a></p></body>`
+      `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Error</title><body style="margin:0;background:#050608;color:#e8eef5;font-family:system-ui,sans-serif;padding:40px 24px;min-height:100vh"><div style="max-width:560px;margin:0 auto;border:1px solid rgba(63,248,227,.25);border-radius:16px;padding:28px;background:linear-gradient(180deg,rgba(63,248,227,.06),#0c1018)"><h1 style="margin:0 0 12px;font-size:22px">No se pudo leer la base de datos</h1><p style="color:#94a3b8;line-height:1.55;margin:0">Verifica que ejecutaste <code style="background:rgba(63,248,227,.12);color:#3FF8E3;padding:2px 8px;border-radius:6px;font-size:90%">supabase/schema.sql</code> y que <code style="background:rgba(63,248,227,.12);color:#3FF8E3;padding:2px 8px;border-radius:6px;font-size:90%">DATABASE_URL</code> está configurada en Vercel.</p><p style="margin-top:22px"><a href="/" style="color:#3FF8E3;font-weight:600">← Volver al sitio</a></p></div></body>`
     );
   }
 
@@ -103,7 +114,7 @@ module.exports = async (req, res) => {
     .join('');
 
   const html = `<!doctype html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -115,12 +126,37 @@ module.exports = async (req, res) => {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  :root{
+  [data-theme="dark"]{
+    color-scheme:dark;
+    --brand:#3FF8E3;
+    --brand-dim:rgba(63,248,227,.14);
+    --bg:#050608;
+    --surface:#0c1018;
+    --surface-2:#111827;
+    --text:#e8eef5;
+    --muted:#8b9aaf;
+    --line:rgba(63,248,227,.22);
+    --line-soft:rgba(255,255,255,.08);
+    --primary:var(--brand);
+    --primary-2:#7afff0;
+    --accent:#19c37d;
+    --warn:#fbbf24;
+    --danger:#fb7185;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow:0 12px 40px rgba(0,0,0,.45), 0 0 1px rgba(63,248,227,.15);
+    --focus-ring:rgba(63,248,227,.25);
+  }
+  [data-theme="light"]{
+    color-scheme:light;
+    --brand:#1d6cf4;
+    --brand-dim:rgba(29,108,244,.08);
     --bg:#f6f8fb;
     --surface:#ffffff;
+    --surface-2:#fafbfd;
     --text:#0b1220;
     --muted:#64748b;
     --line:#e6ebf2;
+    --line-soft:#f1f4f8;
     --primary:#1d6cf4;
     --primary-2:#155ad6;
     --accent:#0fb98a;
@@ -128,18 +164,36 @@ module.exports = async (req, res) => {
     --danger:#ef4444;
     --shadow-sm:0 1px 2px rgba(15,23,42,.06);
     --shadow:0 8px 24px rgba(15,23,42,.06);
+    --focus-ring:rgba(29,108,244,.12);
   }
   html,body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    background-image:
+      radial-gradient(70% 50% at 50% 0%, rgba(63,248,227,.08), transparent 55%),
+      radial-gradient(60% 40% at 100% 100%, rgba(255,43,94,.06), transparent 50%);
+    background-attachment:fixed;
+  }
+  [data-theme="light"] body{background-image:none}
   a{color:inherit;text-decoration:none}
-  .top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;backdrop-filter:saturate(140%) blur(10px)}
   .top-inner{max-width:1320px;margin:0 auto;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:18px}
-  .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#1d6cf4,#0fb98a);box-shadow:0 0 0 4px rgba(29,108,244,.12)}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#ff5b86);box-shadow:0 0 0 4px var(--brand-dim)}
   .brand small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
-  .top-meta{display:flex;align-items:center;gap:18px;color:var(--muted);font-size:13px}
+  .top-meta{display:flex;align-items:center;gap:14px;color:var(--muted);font-size:13px;flex-wrap:wrap}
   .live{display:inline-flex;align-items:center;gap:6px}
-  .live .pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(15,185,138,.6);animation:pulse 1.6s ease-out infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(15,185,138,.55)}70%{box-shadow:0 0 0 12px rgba(15,185,138,0)}100%{box-shadow:0 0 0 0 rgba(15,185,138,0)}}
+  .live .pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(25,195,125,.55);animation:pulse 1.6s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(25,195,125,.5)}70%{box-shadow:0 0 0 12px rgba(25,195,125,0)}100%{box-shadow:0 0 0 0 rgba(25,195,125,0)}}
+
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:40px;height:38px;padding:0 12px;border-radius:10px;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+    font-size:18px;line-height:1;cursor:pointer;transition:border-color .15s, background .15s;
+  }
+  .theme-toggle:hover{border-color:var(--brand);background:var(--brand-dim)}
+  .theme-toggle:focus-visible{outline:none;box-shadow:0 0 0 3px var(--focus-ring)}
+  .top-meta .nav-link{color:var(--brand);font-weight:600}
 
   main{max-width:1320px;margin:0 auto;padding:28px}
   h1{font-size:22px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em}
@@ -154,42 +208,51 @@ module.exports = async (req, res) => {
   .stat .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
   .stat .value{font-size:30px;font-weight:800;letter-spacing:-.01em}
   .stat .hint{font-size:12px;color:var(--muted)}
-  .stat--accent{border-color:#cfe6da;background:linear-gradient(180deg,#f1faf6,#fff)}
-  .stat--warn{border-color:#fde7c1;background:linear-gradient(180deg,#fff8eb,#fff)}
-  .stat--primary{border-color:#cdddff;background:linear-gradient(180deg,#eff5ff,#fff)}
-  .stat--danger{border-color:#fbd5d5;background:linear-gradient(180deg,#fff0f0,#fff)}
+  [data-theme="dark"] .stat--accent{border-color:rgba(25,195,125,.35);background:linear-gradient(180deg,rgba(25,195,125,.12),var(--surface))}
+  [data-theme="dark"] .stat--warn{border-color:rgba(251,191,36,.35);background:linear-gradient(180deg,rgba(251,191,36,.1),var(--surface))}
+  [data-theme="dark"] .stat--primary{border-color:rgba(63,248,227,.35);background:linear-gradient(180deg,rgba(63,248,227,.1),var(--surface))}
+  [data-theme="dark"] .stat--danger{border-color:rgba(251,113,133,.35);background:linear-gradient(180deg,rgba(251,113,133,.1),var(--surface))}
+  [data-theme="light"] .stat--accent{border-color:#cfe6da;background:linear-gradient(180deg,#f1faf6,#fff)}
+  [data-theme="light"] .stat--warn{border-color:#fde7c1;background:linear-gradient(180deg,#fff8eb,#fff)}
+  [data-theme="light"] .stat--primary{border-color:#cdddff;background:linear-gradient(180deg,#eff5ff,#fff)}
+  [data-theme="light"] .stat--danger{border-color:#fbd5d5;background:linear-gradient(180deg,#fff0f0,#fff)}
 
   .filters{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
   .filters input{
     flex:1;min-width:240px;max-width:420px;
-    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
     padding:11px 14px;font-size:14px;color:var(--text);box-shadow:var(--shadow-sm);
   }
-  .filters input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,108,244,.12)}
-  .badge-chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--muted);box-shadow:var(--shadow-sm)}
+  .filters input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--focus-ring)}
+  .filters input::placeholder{color:var(--muted);opacity:.85}
+  .badge-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--muted);box-shadow:var(--shadow-sm)}
 
   .table-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
   .table-wrap{overflow:auto}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
   thead th{
     text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
-    font-weight:700;background:#fafbfd;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap;
+    font-weight:700;background:var(--surface-2);padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap;
   }
-  tbody td{padding:14px 16px;border-bottom:1px solid #f1f4f8;vertical-align:middle}
-  tbody tr:hover{background:#f8faff}
+  tbody td{padding:14px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+  [data-theme="dark"] tbody tr:hover{background:rgba(63,248,227,.06)}
+  [data-theme="light"] tbody tr:hover{background:#f8faff}
   tbody tr:last-child td{border-bottom:none}
   td.num{font-variant-numeric:tabular-nums;font-weight:600}
   .cell-name{font-weight:600}
   .cell-sub{font-size:12px;color:var(--muted);margin-top:2px}
 
   .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11.5px;font-weight:700;line-height:1}
-  .pill-apto{background:rgba(15,185,138,.12);color:#0c8a66;border:1px solid rgba(15,185,138,.3)}
-  .pill-no{background:rgba(239,68,68,.10);color:#b42424;border:1px solid rgba(239,68,68,.3)}
-  .pill-incomplete{background:rgba(245,158,11,.12);color:#9a6500;border:1px solid rgba(245,158,11,.4)}
+  [data-theme="dark"] .pill-apto{background:rgba(25,195,125,.15);color:#5ee9b5;border:1px solid rgba(25,195,125,.4)}
+  [data-theme="dark"] .pill-no{background:rgba(251,113,133,.12);color:#fda4af;border:1px solid rgba(251,113,133,.35)}
+  [data-theme="dark"] .pill-incomplete{background:rgba(251,191,36,.12);color:#fcd34d;border:1px solid rgba(251,191,36,.4)}
+  [data-theme="light"] .pill-apto{background:rgba(15,185,138,.12);color:#0c8a66;border:1px solid rgba(15,185,138,.3)}
+  [data-theme="light"] .pill-no{background:rgba(239,68,68,.10);color:#b42424;border:1px solid rgba(239,68,68,.3)}
+  [data-theme="light"] .pill-incomplete{background:rgba(245,158,11,.12);color:#9a6500;border:1px solid rgba(245,158,11,.4)}
 
   .empty{padding:48px;text-align:center;color:var(--muted)}
   .foot{margin-top:24px;text-align:center;color:var(--muted);font-size:12px}
-  .foot a{color:var(--primary);font-weight:600}
+  .foot a{color:var(--brand);font-weight:600}
 
   @media (max-width:560px){
     main{padding:18px}
@@ -207,7 +270,8 @@ module.exports = async (req, res) => {
     </div>
     <div class="top-meta">
       <span class="live"><span class="pulse"></span> Actualización automática 60 s</span>
-      <a href="/" style="color:var(--primary);font-weight:600">Volver al sitio</a>
+      <button type="button" class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar entre tema noche y día">☀️</button>
+      <a href="/" class="nav-link">Volver al sitio</a>
     </div>
   </div>
 </header>
@@ -274,6 +338,27 @@ module.exports = async (req, res) => {
 </main>
 
 <script>
+(function(){
+  var key = 'hm-admin-theme';
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  function syncThemeBtn(){
+    if(!btn) return;
+    var dark = root.getAttribute('data-theme') === 'dark';
+    btn.textContent = dark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    btn.title = dark ? 'Modo día' : 'Modo noche';
+    btn.setAttribute('aria-label', btn.title);
+  }
+  var saved = localStorage.getItem(key);
+  if(saved === 'light' || saved === 'dark') root.setAttribute('data-theme', saved);
+  syncThemeBtn();
+  if(btn) btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem(key, next);
+    syncThemeBtn();
+  });
+})();
 (function(){
   const inp = document.getElementById('filterInput');
   const tbody = document.getElementById('tbody');
