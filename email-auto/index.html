@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Envío automático · Resend</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%;background:#050608;color:#e8eef5;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  :root{--cyan:#3FF8E3;--muted:#8b9aaf;--line:rgba(63,248,227,.22);--surface:#0c1018}
+  body{
+    background-image:
+      radial-gradient(70% 40% at 50% 0%, rgba(63,248,227,.1), transparent 55%),
+      radial-gradient(50% 40% at 100% 80%, rgba(255,43,94,.08), transparent 50%);
+    padding:32px 18px 48px;
+  }
+  .wrap{max-width:560px;margin:0 auto}
+  h1{font-size:clamp(22px,4vw,28px);font-weight:800;margin-bottom:8px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:28px;line-height:1.5}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;
+    box-shadow:0 12px 40px rgba(0,0,0,.35);
+  }
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+  input[type=email],input[type=text],input[type=password],textarea{
+    width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:#111827;color:#e8eef5;font-size:15px;margin-bottom:18px;
+  }
+  input:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px rgba(63,248,227,.15)}
+  textarea{min-height:140px;resize:vertical;line-height:1.5}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row > *{flex:1;min-width:140px}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+  button{
+    flex:1;min-width:160px;padding:14px 20px;border-radius:12px;font-weight:800;font-size:15px;
+    border:none;cursor:pointer;transition:transform .12s ease, box-shadow .15s;
+  }
+  .btn-go{
+    color:#001b18;
+    background:linear-gradient(180deg,#7afff0,var(--cyan));
+    box-shadow:0 8px 28px rgba(63,248,227,.35);
+  }
+  .btn-go:hover:not(:disabled){transform:translateY(-1px)}
+  .btn-go:disabled{opacity:.45;cursor:not-allowed}
+  .btn-stop{
+    background:transparent;color:#fb7185;border:1px solid rgba(251,113,133,.45);
+  }
+  .btn-stop:hover:not(:disabled){background:rgba(251,113,133,.1)}
+  .status{
+    margin-top:20px;padding:14px 16px;border-radius:12px;font-size:13px;
+    background:rgba(63,248,227,.06);border:1px solid var(--line);color:#cfd6df;
+  }
+  .status strong{color:var(--cyan)}
+  .log{
+    margin-top:14px;max-height:200px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px;
+    color:var(--muted);line-height:1.6;padding:12px;background:#080b10;border-radius:10px;border:1px solid rgba(255,255,255,.06)
+  }
+  .foot{margin-top:24px;font-size:12px;color:var(--muted);text-align:center}
+  .foot a{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Envío automático con Resend</h1>
+  <p class="sub">Completa el destinatario y el mensaje. Al iniciar, se envía el primer correo de inmediato y luego <strong>cada 1 minuto</strong> mientras esta pestaña siga abierta.</p>
+
+  <div class="card">
+    <label for="to">Correo destino</label>
+    <input id="to" type="email" autocomplete="email" placeholder="ejemplo@correo.com"/>
+
+    <label for="subject">Asunto</label>
+    <input id="subject" type="text" placeholder="Asunto del correo"/>
+
+    <label for="msg">Mensaje</label>
+    <textarea id="msg" placeholder="Escribe aquí el cuerpo del mensaje…"></textarea>
+
+    <label for="secret">Clave de herramienta (opcional)</label>
+    <input id="secret" type="password" autocomplete="off" placeholder="Solo si configuraste EMAIL_AUTO_SECRET en Vercel"/>
+    <p class="sub" style="margin:-8px 0 18px;font-size:12px">Déjalo vacío si no usas clave en el servidor.</p>
+
+    <div class="actions">
+      <button type="button" class="btn-go" id="btnStart">Iniciar envío cada 1 min</button>
+      <button type="button" class="btn-stop" id="btnStop" disabled>Detener</button>
+    </div>
+
+    <div class="status" id="status">Estado: <strong id="runState">detenido</strong>. Envíos: <strong id="count">0</strong></div>
+    <div class="log" id="log" aria-live="polite"></div>
+  </div>
+
+  <p class="foot"><a href="/">← Volver al sitio</a></p>
+</div>
+
+<script>
+(function(){
+  var timer = null;
+  var sent = 0;
+  var $to = document.getElementById('to');
+  var $subject = document.getElementById('subject');
+  var $msg = document.getElementById('msg');
+  var $secret = document.getElementById('secret');
+  var $btnStart = document.getElementById('btnStart');
+  var $btnStop = document.getElementById('btnStop');
+  var $runState = document.getElementById('runState');
+  var $count = document.getElementById('count');
+  var $log = document.getElementById('log');
+
+  function logLine(text){
+    var t = new Date().toLocaleString('es-CO');
+    $log.textContent = '[' + t + '] ' + text + '\n' + $log.textContent;
+  }
+
+  function setRunning(on){
+    $btnStart.disabled = on;
+    $btnStop.disabled = !on;
+    $to.readOnly = on;
+    $subject.readOnly = on;
+    $msg.readOnly = on;
+    $secret.readOnly = on;
+    if($runState) $runState.textContent = on ? 'enviando cada 60 s' : 'detenido';
+  }
+
+  async function sendOnce(){
+    var payload = {
+      to: $to.value.trim(),
+      subject: ($subject.value || '').trim() || 'Mensaje automático',
+      message: $msg.value.trim()
+    };
+    var sec = $secret.value.trim();
+    if(sec) payload.tool_secret = sec;
+
+    var res = await fetch('/api/email-send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var data = {};
+    try { data = await res.json(); } catch(_) {}
+
+    if(!res.ok){
+      logLine('Error ' + res.status + ': ' + (data.detail || data.error || JSON.stringify(data)));
+      throw new Error(data.error || 'fail');
+    }
+    sent++;
+    $count.textContent = String(sent);
+    logLine('Enviado OK · id ' + (data.id || '—'));
+    return data;
+  }
+
+  function tick(){
+    sendOnce().catch(function(){});
+  }
+
+  $btnStart.addEventListener('click', function(){
+    if(!$to.value.trim()){ alert('Indica el correo destino.'); return; }
+    if(!$msg.value.trim()){ alert('Escribe el mensaje.'); return; }
+
+    setRunning(true);
+    sent = 0;
+    $count.textContent = '0';
+    $log.textContent = '';
+    logLine('Inicio · primer envío…');
+
+    sendOnce()
+      .then(function(){
+        timer = setInterval(tick, 60000);
+      })
+      .catch(function(){
+        setRunning(false);
+      });
+  });
+
+  $btnStop.addEventListener('click', function(){
+    if(timer){ clearInterval(timer); timer = null; }
+    setRunning(false);
+    logLine('Detenido por el usuario.');
+  });
+
+  window.addEventListener('beforeunload', function(){
+    if(timer) clearInterval(timer);
+  });
+})();
+</script>
+</body>
+</html>
