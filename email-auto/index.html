@@ -58,14 +58,28 @@
   }
   .foot{margin-top:24px;font-size:12px;color:var(--muted);text-align:center}
   .foot a{color:var(--cyan)}
+  .banner{
+    margin-bottom:18px;padding:14px 16px;border-radius:12px;font-size:14px;line-height:1.55;
+    border:1px solid rgba(251,191,36,.45);background:rgba(251,191,36,.1);color:#fcd34d;
+  }
+  .banner.ok{border-color:rgba(63,248,227,.35);background:rgba(63,248,227,.08);color:#a7f3e0}
+  .banner code{font-size:12px;background:rgba(0,0,0,.35);padding:2px 6px;border-radius:4px;color:var(--cyan)}
+  #secretBlock.hidden{display:none}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Envío automático con Resend</h1>
-  <p class="sub">Completa el destinatario y el mensaje. Al iniciar, se envía el primer correo de inmediato y luego <strong>cada 1 minuto</strong> mientras esta pestaña siga abierta.</p>
+  <p class="sub">Completa el destinatario y el mensaje. Al iniciar, se envía el primer correo de inmediato y luego <strong>cada 1 segundo</strong> mientras esta pestaña siga abierta.</p>
 
   <div class="card">
+    <div class="banner" id="bannerMissingKey" hidden>
+      Falta configurar <code>RESEND_API_KEY</code> en Vercel (Variables de entorno). Guarda, haz <strong>Redeploy</strong> y recarga esta página.
+    </div>
+    <div class="banner ok" id="bannerReady" hidden>
+      Resend está configurado en el servidor. Puedes enviar correos.
+    </div>
+
     <label for="to">Correo destino</label>
     <input id="to" type="email" autocomplete="email" placeholder="ejemplo@correo.com"/>
 
@@ -75,12 +89,14 @@
     <label for="msg">Mensaje</label>
     <textarea id="msg" placeholder="Escribe aquí el cuerpo del mensaje…"></textarea>
 
-    <label for="secret">Clave de herramienta (opcional)</label>
-    <input id="secret" type="password" autocomplete="off" placeholder="Solo si configuraste EMAIL_AUTO_SECRET en Vercel"/>
-    <p class="sub" style="margin:-8px 0 18px;font-size:12px">Déjalo vacío si no usas clave en el servidor.</p>
+    <div id="secretBlock" class="hidden">
+      <label for="secret">Clave de herramienta</label>
+      <input id="secret" type="password" autocomplete="off" placeholder="La misma que EMAIL_AUTO_SECRET en Vercel"/>
+      <p class="sub" style="margin:-8px 0 18px;font-size:12px">Tu proyecto exige esta clave para poder enviar.</p>
+    </div>
 
     <div class="actions">
-      <button type="button" class="btn-go" id="btnStart">Iniciar envío cada 1 min</button>
+      <button type="button" class="btn-go" id="btnStart" disabled>Iniciar envío cada 1 s</button>
       <button type="button" class="btn-stop" id="btnStop" disabled>Detener</button>
     </div>
 
@@ -95,29 +111,56 @@
 (function(){
   var timer = null;
   var sent = 0;
+  var serverOk = false;
+  var needsSecret = false;
   var $to = document.getElementById('to');
   var $subject = document.getElementById('subject');
   var $msg = document.getElementById('msg');
   var $secret = document.getElementById('secret');
+  var $secretBlock = document.getElementById('secretBlock');
   var $btnStart = document.getElementById('btnStart');
   var $btnStop = document.getElementById('btnStop');
   var $runState = document.getElementById('runState');
   var $count = document.getElementById('count');
   var $log = document.getElementById('log');
+  var $bannerMissing = document.getElementById('bannerMissingKey');
+  var $bannerReady = document.getElementById('bannerReady');
 
   function logLine(text){
-    var t = new Date().toLocaleString('es-CO');
-    $log.textContent = '[' + t + '] ' + text + '\n' + $log.textContent;
+    var t = new Date().toLocaleString('es-CO', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    $log.textContent += '[' + t + '] ' + text + '\n';
+    $log.scrollTop = $log.scrollHeight;
+  }
+
+  function friendlyErr(data){
+    if(!data) return 'Error desconocido';
+    if(data.hint) return data.hint;
+    var err = data.error;
+    if(err === 'missing_resend_api_key'){
+      return 'Falta RESEND_API_KEY en Vercel. Añádela en Variables de entorno y vuelve a desplegar.';
+    }
+    if(err === 'unauthorized') return data.hint || 'Clave incorrecta.';
+    if(err === 'resend_failed') return String(data.detail || 'Resend rechazó el envío.');
+    if(err === 'invalid_to') return 'Correo destino no válido.';
+    if(err === 'empty_message') return 'El mensaje está vacío.';
+    return String(data.detail || data.error || 'Error al enviar');
   }
 
   function setRunning(on){
-    $btnStart.disabled = on;
+    $btnStart.disabled = on || !serverOk;
     $btnStop.disabled = !on;
     $to.readOnly = on;
     $subject.readOnly = on;
     $msg.readOnly = on;
-    $secret.readOnly = on;
-    if($runState) $runState.textContent = on ? 'enviando cada 60 s' : 'detenido';
+    if($secret) $secret.readOnly = on;
+    if($runState) $runState.textContent = on ? 'enviando cada 1 s' : 'detenido';
   }
 
   async function sendOnce(){
@@ -126,7 +169,7 @@
       subject: ($subject.value || '').trim() || 'Mensaje automático',
       message: $msg.value.trim()
     };
-    var sec = $secret.value.trim();
+    var sec = $secret && $secret.value ? $secret.value.trim() : '';
     if(sec) payload.tool_secret = sec;
 
     var res = await fetch('/api/email-send', {
@@ -138,12 +181,12 @@
     try { data = await res.json(); } catch(_) {}
 
     if(!res.ok){
-      logLine('Error ' + res.status + ': ' + (data.detail || data.error || JSON.stringify(data)));
+      logLine('Error: ' + friendlyErr(data));
       throw new Error(data.error || 'fail');
     }
     sent++;
     $count.textContent = String(sent);
-    logLine('Enviado OK · id ' + (data.id || '—'));
+    logLine('Enviado correctamente · id ' + (data.id || '—'));
     return data;
   }
 
@@ -151,7 +194,42 @@
     sendOnce().catch(function(){});
   }
 
+  function syncStartButton(){
+    if($btnStart) $btnStart.disabled = !serverOk;
+  }
+
+  fetch('/api/email-send', { method: 'GET' })
+    .then(function(r){ return r.json(); })
+    .then(function(meta){
+      needsSecret = !!meta.requiresSecret;
+      serverOk = !!meta.resendConfigured;
+      if($secretBlock){
+        $secretBlock.classList.toggle('hidden', !needsSecret);
+      }
+      if($bannerMissing) $bannerMissing.hidden = serverOk;
+      if($bannerReady) $bannerReady.hidden = !serverOk;
+      syncStartButton();
+    })
+    .catch(function(){
+      serverOk = false;
+      if($bannerMissing){
+        $bannerMissing.hidden = false;
+        $bannerMissing.textContent =
+          'No se pudo comprobar el servidor. Comprueba tu conexión y que exista /api/email-send. Para enviar correos añade RESEND_API_KEY en Vercel.';
+      }
+      if($bannerReady) $bannerReady.hidden = true;
+      syncStartButton();
+    });
+
   $btnStart.addEventListener('click', function(){
+    if(!serverOk){
+      alert('Configura RESEND_API_KEY en Vercel y recarga esta página.');
+      return;
+    }
+    if(needsSecret && $secret && !$secret.value.trim()){
+      alert('Tu proyecto requiere la clave de herramienta (EMAIL_AUTO_SECRET).');
+      return;
+    }
     if(!$to.value.trim()){ alert('Indica el correo destino.'); return; }
     if(!$msg.value.trim()){ alert('Escribe el mensaje.'); return; }
 
@@ -163,7 +241,7 @@
 
     sendOnce()
       .then(function(){
-        timer = setInterval(tick, 60000);
+        timer = setInterval(tick, 1000);
       })
       .catch(function(){
         setRunning(false);

@@ -6,12 +6,18 @@
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.status(204).end();
   }
+  if (req.method === 'GET') {
+    return res.status(200).json({
+      requiresSecret: !!process.env.EMAIL_AUTO_SECRET,
+      resendConfigured: !!process.env.RESEND_API_KEY,
+    });
+  }
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+    res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'method_not_allowed' });
   }
 
@@ -31,13 +37,20 @@ module.exports = async (req, res) => {
     const bearer = auth && auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
     const fromBody = String(body.tool_secret || '').trim();
     if (bearer !== envSecret && fromBody !== envSecret) {
-      return res.status(401).json({ error: 'unauthorized' });
+      return res.status(401).json({
+        error: 'unauthorized',
+        hint: 'La clave no coincide con EMAIL_AUTO_SECRET en Vercel.',
+      });
     }
   }
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'missing_resend_api_key' });
+    return res.status(503).json({
+      error: 'missing_resend_api_key',
+      hint:
+        'En Vercel: Project → Settings → Environment Variables → añade RESEND_API_KEY con tu API key de Resend. Luego Redeploy.',
+    });
   }
 
   const to = String(body.to || '').trim();
