@@ -1,8 +1,23 @@
 /**
  * Envío de correo vía Resend (POST).
- * Variables: RESEND_API_KEY (obligatoria), RESEND_FROM (remitente verificado),
- * EMAIL_AUTO_SECRET (opcional: si existe, exige tool_secret en el cuerpo).
+ * Variables: RESEND_API_KEY (obligatoria).
+ * Remitente: RESEND_FROM o EMAIL_FROM (cualquiera; mismo uso). Dominio verificado en Resend.
+ * EMAIL_AUTO_SECRET (opcional).
  */
+
+function resolveFrom(body) {
+  const candidates = [
+    body && body.from,
+    process.env.RESEND_FROM,
+    process.env.EMAIL_FROM,
+  ];
+  for (const c of candidates) {
+    if (c == null) continue;
+    const s = String(c).replace(/\s/g, '').trim();
+    if (s && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return s;
+  }
+  return 'onboarding@resend.dev';
+}
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') {
@@ -11,9 +26,11 @@ module.exports = async (req, res) => {
     return res.status(204).end();
   }
   if (req.method === 'GET') {
+    const hasCustomFrom = !!(process.env.RESEND_FROM || process.env.EMAIL_FROM);
     return res.status(200).json({
       requiresSecret: !!process.env.EMAIL_AUTO_SECRET,
       resendConfigured: !!process.env.RESEND_API_KEY,
+      customFromSet: hasCustomFrom,
     });
   }
   if (req.method !== 'POST') {
@@ -56,7 +73,7 @@ module.exports = async (req, res) => {
   const to = String(body.to || '').trim();
   const subject = String(body.subject || 'Mensaje automático').trim();
   const message = String(body.message || body.text || '').trim();
-  const from = String(body.from || process.env.RESEND_FROM || 'onboarding@resend.dev').trim();
+  const from = resolveFrom(body);
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to);
   if (!to || !emailOk) {
@@ -89,9 +106,19 @@ module.exports = async (req, res) => {
     const data = await r.json().catch(() => ({}));
     if (!r.ok) {
       console.error('email-send resend', r.status, data);
+      const msg = String(data.message || data.name || '');
+      let hint;
+      if (/only send testing emails|testing emails to your own/i.test(msg)) {
+        hint =
+          'Sigues usando el remitente de prueba. En Vercel define RESEND_FROM o EMAIL_FROM con un correo de tu dominio ya verificado en Resend (ej. hola@tudominio.com), sin saltos de línea. Redeploy y prueba de nuevo.';
+      } else if (/verify a domain|from.*domain/i.test(msg)) {
+        hint =
+          'Verifica el dominio en resend.com/domains y en Vercel usa RESEND_FROM o EMAIL_FROM con una dirección de ese dominio.';
+      }
       return res.status(502).json({
         error: 'resend_failed',
-        detail: data.message || data.name || data,
+        detail: msg || data,
+        hint,
       });
     }
     return res.status(200).json({ ok: true, id: data.id });

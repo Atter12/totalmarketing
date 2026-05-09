@@ -77,8 +77,15 @@
       Falta configurar <code>RESEND_API_KEY</code> en Vercel (Variables de entorno). Guarda, haz <strong>Redeploy</strong> y recarga esta página.
     </div>
     <div class="banner ok" id="bannerReady" hidden>
-      Resend está configurado en el servidor. Puedes enviar correos.
+      API lista. Para otros destinatarios usa remitente de tu dominio: <code>RESEND_FROM</code> o <code>EMAIL_FROM</code> en Vercel.
     </div>
+    <div class="banner" id="bannerNoFrom" hidden>
+      No hay <code>EMAIL_FROM</code> ni <code>RESEND_FROM</code> en el servidor: Resend usará el remitente de prueba y solo podrás enviar a tu propio correo de cuenta.
+    </div>
+
+    <p class="sub" style="margin-top:-8px;margin-bottom:16px;padding:12px 14px;background:rgba(63,248,227,.06);border:1px solid var(--line);border-radius:12px;font-size:13px;line-height:1.55">
+      <strong>Importante (Resend):</strong> con el remitente de prueba solo puedes enviar <strong>a tu correo de cuenta</strong>. Con dominio verificado, en Vercel define <code>EMAIL_FROM</code> o <code>RESEND_FROM</code> (ej. <code>hola@tudominio.com</code>) — la app lee cualquiera de las dos.
+    </p>
 
     <label for="to">Correo destino</label>
     <input id="to" type="email" autocomplete="email" placeholder="ejemplo@correo.com"/>
@@ -125,6 +132,7 @@
   var $log = document.getElementById('log');
   var $bannerMissing = document.getElementById('bannerMissingKey');
   var $bannerReady = document.getElementById('bannerReady');
+  var $bannerNoFrom = document.getElementById('bannerNoFrom');
 
   function logLine(text){
     var t = new Date().toLocaleString('es-CO', {
@@ -147,7 +155,14 @@
       return 'Falta RESEND_API_KEY en Vercel. Añádela en Variables de entorno y vuelve a desplegar.';
     }
     if(err === 'unauthorized') return data.hint || 'Clave incorrecta.';
-    if(err === 'resend_failed') return String(data.detail || 'Resend rechazó el envío.');
+    if(err === 'resend_failed'){
+      if(data.hint) return data.hint;
+      var d = String(data.detail || '');
+      if(/testing emails to your own/i.test(d)){
+        return 'Modo prueba: usa tu correo de cuenta Resend o configura EMAIL_FROM / RESEND_FROM con tu dominio verificado.';
+      }
+      return d || 'Resend rechazó el envío.';
+    }
     if(err === 'invalid_to') return 'Correo destino no válido.';
     if(err === 'empty_message') return 'El mensaje está vacío.';
     return String(data.detail || data.error || 'Error al enviar');
@@ -203,11 +218,13 @@
     .then(function(meta){
       needsSecret = !!meta.requiresSecret;
       serverOk = !!meta.resendConfigured;
+      var hasFrom = !!meta.customFromSet;
       if($secretBlock){
         $secretBlock.classList.toggle('hidden', !needsSecret);
       }
       if($bannerMissing) $bannerMissing.hidden = serverOk;
       if($bannerReady) $bannerReady.hidden = !serverOk;
+      if($bannerNoFrom) $bannerNoFrom.hidden = !serverOk || hasFrom;
       syncStartButton();
     })
     .catch(function(){
