@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>Holistic Marketing — Pauta Productos Black en TikTok Ads</title>
-<meta name="description" content="Solo para negocios ecommerce contra entrega que venden por Shopify. Agenda tu llamada con Holistic Marketing." />
+<meta name="description" content="Solo para negocios ecommerce contra entrega que venden por Shopify. Solicita más información con Holistic Marketing." />
 <style>
   /* ============== RESET ============== */
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -334,7 +334,7 @@
 
     <div class="cta-wrap">
       <button class="cta" id="goToForm" type="button">
-        AGENDA TU LLAMADA AQUÍ
+        Más información
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>
@@ -347,7 +347,7 @@
 <!-- ============== STEP 2: QUALIFICATION FORM ============== -->
 <section class="form-section" id="step2">
   <div class="form-head">
-    <h2>Agenda Tu Llamada Aquí Abajo</h2>
+    <h2>Completa el formulario a continuación</h2>
     <div class="alert"><b>ATENCIÓN:</b> Solo Para Negocios Ecommerce Contra Entrega Que Venden Por Shopify</div>
   </div>
 
@@ -416,7 +416,7 @@
         <div class="step-title">¿Has realizado anuncios alguna vez? <em style="color:#1d6cf4">*</em></div>
         <div class="radios" data-name="anuncios">
           <label><input type="radio" name="anuncios" value="no" /><span>No, nunca</span></label>
-          <label><input type="radio" name="anuncios" value="si" /><span>Si, he realizado publicidad</span></label>
+          <label><input type="radio" name="anuncios" value="si" /><span>Sí, he realizado publicidad</span></label>
         </div>
         <div class="err" style="margin-top:8px">Selecciona una opción</div>
       </div>
@@ -427,7 +427,7 @@
         <div class="radios" data-name="ecommerce">
           <label><input type="radio" name="ecommerce" value="no_se" /><span>No sé qué es Ecommerce</span></label>
           <label><input type="radio" name="ecommerce" value="no" /><span>No tengo negocio</span></label>
-          <label><input type="radio" name="ecommerce" value="si" /><span>Si, tengo un negocio</span></label>
+          <label><input type="radio" name="ecommerce" value="si" /><span>Sí, tengo un negocio</span></label>
         </div>
         <div class="err" style="margin-top:8px">Selecciona una opción</div>
       </div>
@@ -449,10 +449,10 @@
       <div class="step" data-step="7">
         <div class="step-title">Compromiso de asistencia <em style="color:#1d6cf4">*</em></div>
         <div class="commitment">
-          Recibimos muchas llamadas cada día (las hacemos por Google Meet), por lo que agendar implica un compromiso de nuestro tiempo y el tuyo. Dicho esto, <b>¿te comprometes a ser puntual y asistir a la llamada?</b>
+          Recibimos muchas solicitudes; si la agencia te contacta, necesitamos que respondas y seas serio con el proceso. <b>¿Te comprometes a estar atento al contacto y a ser puntual si la agencia agenda una llamada contigo?</b>
           <label class="check">
             <input type="checkbox" name="compromiso" id="compromiso" />
-            <span>Entiendo que la llamada es por Google Meet. Me comprometo a asistir y ser puntual</span>
+            <span>Me comprometo a estar atento al contacto de la agencia y a ser puntual si acordamos una llamada</span>
           </label>
         </div>
         <div class="err" style="margin-top:8px">Debes aceptar el compromiso para continuar</div>
@@ -462,7 +462,7 @@
       <div class="actions">
         <button type="button" class="btn btn-ghost" id="prevBtn" style="display:none">Atrás</button>
         <button type="button" class="btn btn-primary" id="nextBtn">Continuar</button>
-        <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none">Agendar Llamada</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none">Enviar</button>
       </div>
     </form>
   </div>
@@ -686,7 +686,7 @@ const PANDA_POSTER_FALLBACK =
 
 /* ===================== NAV: HERO -> FORM ===================== */
 $('#goToForm').addEventListener('click', ()=>{
-  trackEvent('cta_click', { btn:'goToForm', label:'AGENDA TU LLAMADA AQUÍ' });
+  trackEvent('cta_click', { btn:'goToForm', label:'Más información' });
   $('#step1').style.display = 'none';
   $('#step2').classList.add('active');
   window.scrollTo({top:0, behavior:'instant'});
@@ -798,7 +798,7 @@ $('#qualForm').addEventListener('submit', async e=>{
   const a = state.answers;
   const puntos = scoreAnswers(a);
   const cumpleCompromiso = a.compromiso === true;
-  const calificado = puntos >= 3 && cumpleCompromiso;
+  const calificado = puntos >= 2 && cumpleCompromiso;
 
   try{
     const res = await fetch('/api/submit', {

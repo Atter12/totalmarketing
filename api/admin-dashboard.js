@@ -302,7 +302,7 @@ module.exports = async (req, res) => {
       <span class="hint">abandonaron el formulario</span>
     </div>
     <div class="stat">
-      <span class="label">Clics “Agendar llamada”</span>
+      <span class="label">Clics «Más información»</span>
       <span class="value">${ctaClicks}</span>
       <span class="hint">total acumulado del CTA principal</span>
     </div>
