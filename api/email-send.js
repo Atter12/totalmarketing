@@ -5,6 +5,22 @@
  * EMAIL_AUTO_SECRET (opcional).
  */
 
+function isEmailShape(s) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || '').replace(/\s/g, '').trim());
+}
+
+/** Variables definidas pero con valor que no es un correo (ej. solo texto). */
+function listInvalidFromEnvs() {
+  const bad = [];
+  for (const name of ['RESEND_FROM', 'EMAIL_FROM']) {
+    const v = process.env[name];
+    if (v == null || String(v).trim() === '') continue;
+    const s = String(v).replace(/\s/g, '').trim();
+    if (!isEmailShape(s)) bad.push(name);
+  }
+  return bad;
+}
+
 function resolveFrom(body) {
   const candidates = [
     body && body.from,
@@ -14,7 +30,7 @@ function resolveFrom(body) {
   for (const c of candidates) {
     if (c == null) continue;
     const s = String(c).replace(/\s/g, '').trim();
-    if (s && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return s;
+    if (s && isEmailShape(s)) return s;
   }
   return 'onboarding@resend.dev';
 }
@@ -26,11 +42,13 @@ module.exports = async (req, res) => {
     return res.status(204).end();
   }
   if (req.method === 'GET') {
-    const hasCustomFrom = !!(process.env.RESEND_FROM || process.env.EMAIL_FROM);
+    const invalidFrom = listInvalidFromEnvs();
+    const resolved = resolveFrom({});
     return res.status(200).json({
       requiresSecret: !!process.env.EMAIL_AUTO_SECRET,
       resendConfigured: !!process.env.RESEND_API_KEY,
-      customFromSet: hasCustomFrom,
+      customFromSet: resolved !== 'onboarding@resend.dev',
+      invalidFromEnv: invalidFrom,
     });
   }
   if (req.method !== 'POST') {
@@ -74,6 +92,16 @@ module.exports = async (req, res) => {
   const subject = String(body.subject || 'Mensaje automático').trim();
   const message = String(body.message || body.text || '').trim();
   const from = resolveFrom(body);
+
+  const malformedFrom = listInvalidFromEnvs();
+  if (from === 'onboarding@resend.dev' && malformedFrom.length > 0) {
+    return res.status(400).json({
+      error: 'invalid_from_env',
+      hint:
+        `${malformedFrom.join(' y ')} debe ser un correo real del dominio verificado en Resend, con @ y dominio (ej. hola@tudominio.com). No pongas solo un nombre o frase como «EmpresaEnApuro!».`,
+      invalidFromEnv: malformedFrom,
+    });
+  }
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to);
   if (!to || !emailOk) {
