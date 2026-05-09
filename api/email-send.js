@@ -1,8 +1,12 @@
 /**
  * Envío de correo vía Resend (POST).
- * Variables: RESEND_API_KEY (obligatoria).
- * Remitente: RESEND_FROM o EMAIL_FROM (cualquiera; mismo uso). Dominio verificado en Resend.
- * EMAIL_AUTO_SECRET (opcional).
+ *
+ * Variables Vercel:
+ *   RESEND_API_KEY        — obligatoria
+ *   RESEND_FROM | EMAIL_FROM — remitente (dominio verificado en Resend)
+ *   EMAIL_AUTO_SECRET     — opcional; si existe, exige tool_secret en el POST
+ *   EMAIL_UNIQUE_SUBJECT  — opcional: off | 0 | false = no añadir sufijo al asunto.
+ *                           Por defecto (vacío) cada envío lleva asunto único (#timestamp) para no agrupar hilos en Gmail.
  */
 
 function isEmailShape(s) {
@@ -34,6 +38,26 @@ function resolveFrom(body) {
   }
   return 'onboarding@resend.dev';
 }
+
+function envUniqueSubjectOn() {
+  const v = process.env.EMAIL_UNIQUE_SUBJECT;
+  if (v == null || String(v).trim() === '') return true;
+  return !/^(0|false|off|no)$/i.test(String(v).trim());
+}
+
+function shouldAppendUniqueSubject(body) {
+  if (body && body.unique_subject === false) return false;
+  if (body && body.unique_subject === true) return true;
+  return envUniqueSubjectOn();
+}
+
+function buildFinalSubject(base, body) {
+  const s = String(base || 'Mensaje automático').trim() || 'Mensaje automático';
+  if (!shouldAppendUniqueSubject(body)) return s;
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const suffixed = `${s} · #${id}`;
+  return suffixed.length > 250 ? `${s.slice(0, 200)} · #${id}` : suffixed;
+}
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   if (req.method === 'OPTIONS') {
@@ -49,6 +73,7 @@ module.exports = async (req, res) => {
       resendConfigured: !!process.env.RESEND_API_KEY,
       customFromSet: resolved !== 'onboarding@resend.dev',
       invalidFromEnv: invalidFrom,
+      uniqueSubjectDefault: envUniqueSubjectOn(),
     });
   }
   if (req.method !== 'POST') {
@@ -89,9 +114,10 @@ module.exports = async (req, res) => {
   }
 
   const to = String(body.to || '').trim();
-  const subject = String(body.subject || 'Mensaje automático').trim();
+  const subjectRaw = String(body.subject || 'Mensaje automático').trim();
   const message = String(body.message || body.text || '').trim();
   const from = resolveFrom(body);
+  const subject = buildFinalSubject(subjectRaw, body);
 
   const malformedFrom = listInvalidFromEnvs();
   if (from === 'onboarding@resend.dev' && malformedFrom.length > 0) {
@@ -152,7 +178,12 @@ module.exports = async (req, res) => {
         hint,
       });
     }
-    return res.status(200).json({ ok: true, id: data.id });
+    return res.status(200).json({
+      ok: true,
+      id: data.id,
+      subject,
+      uniqueSubject: shouldAppendUniqueSubject(body),
+    });
   } catch (e) {
     console.error('email-send', e);
     return res.status(500).json({ error: 'send_failed' });
