@@ -27,7 +27,23 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
-const ADMIN_TZ = process.env.ADMIN_TZ || 'America/Bogota';
+/** Zona horaria del panel (IANA). Perú por defecto. */
+const ADMIN_TZ = process.env.ADMIN_TZ || 'America/Lima';
+/** Locale para fechas en tabla (es-PE = Perú). */
+const ADMIN_LOCALE = process.env.ADMIN_LOCALE || 'es-PE';
+
+const ADMIN_TZ_LABEL = {
+  'America/Lima': 'Perú · hora de Lima (PET, UTC−5)',
+  'America/Bogota': 'Colombia · hora de Bogotá (COT, UTC−5)',
+  'America/Mexico_City': 'México · hora del centro (CST)',
+  'America/Santiago': 'Chile · hora de Santiago (CLT)',
+};
+
+function adminTzCaption() {
+  const fixed = ADMIN_TZ_LABEL[ADMIN_TZ];
+  if (fixed) return fixed;
+  return `Zona: ${ADMIN_TZ}`;
+}
 
 function fmtDate(iso) {
   if (!iso) return '—';
@@ -35,14 +51,14 @@ function fmtDate(iso) {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return String(iso);
     const o = { timeZone: ADMIN_TZ, hour12: true };
-    const fecha = d.toLocaleDateString('es-CO', {
+    const fecha = d.toLocaleDateString(ADMIN_LOCALE, {
       ...o,
       weekday: 'short',
       day: 'numeric',
       month: 'short',
       year: 'numeric',
     });
-    const hora = d.toLocaleTimeString('es-CO', {
+    const hora = d.toLocaleTimeString(ADMIN_LOCALE, {
       ...o,
       hour: '2-digit',
       minute: '2-digit',
@@ -161,7 +177,7 @@ module.exports = async (req, res) => {
           : '';
       return `<tr>
         <td${fechaTitle}><div>${escapeHtml(fmtDate(ts))}</div>${creadoSub}<div class="cell-sub" style="opacity:.78">${escapeHtml(
-          ADMIN_TZ
+          adminTzCaption()
         )}</div></td>
         <td><div class="cell-name">${nm}</div><div class="cell-sub">${lastStep}</div></td>
         <td>${escapeHtml(r.email || '—')}</td>
