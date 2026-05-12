@@ -943,6 +943,10 @@ $('#qualForm').addEventListener('submit', async e=>{
     return;
   }
 
+  try{
+    localStorage.removeItem('hm_sid');
+  }catch(_){ /* siguiente visita = nueva sesión = nuevo registro en admin */ }
+
   sessionStorage.setItem('leadOutcome', JSON.stringify({
     calificado, puntos, answers: a, ts: Date.now()
   }));

@@ -1,7 +1,8 @@
 /**
- * Guarda o actualiza un lead. Preferencia: upsert por session_id.
- * Si la tabla aún no tiene esas columnas, intenta ALTER (Supabase suele permitirlo).
- * Si no hay permisos, guarda en modo legacy: actualiza por WhatsApp + país o inserta.
+ * Guarda leads:
+ *  - incompleto: un solo borrador por session_id (upsert con índice único parcial).
+ *  - completo: siempre nueva fila (mismo correo / IP / sesión puede repetirse en intentos distintos).
+ * Tras un completo se borra el borrador incompleto de esa sesión.
  */
 const { Pool } = require('pg');
 
@@ -30,14 +31,16 @@ function clean(v) {
 
 function isSchemaRelatedError(err) {
   const c = err && err.code;
-  if (c === '42703' || c === '42P10') return true;
+  if (c === '42703' || c === '42P10' || c === '42P07') return true;
   const msg = String((err && err.message) || '');
-  return /session_id|last_step|"status"|no unique or exclusion constraint matching/i.test(msg);
+  return /session_id|last_step|"status"|no unique or exclusion constraint|unique_violation/i.test(msg);
 }
 
 let schemaEnsured = false;
 
-/** Intenta alinear la tabla con supabase/schema.sql (idempotente). */
+/**
+ * Alinea tabla + índices: quita unique global en session_id y deja único solo para incompletos.
+ */
 async function ensureLeadsSchema(p) {
   if (schemaEnsured) return;
   await p.query(`
@@ -46,19 +49,24 @@ async function ensureLeadsSchema(p) {
     alter table public.leads add column if not exists last_step smallint;
     alter table public.leads add column if not exists updated_at timestamptz not null default now();
   `);
+  await p.query(`alter table public.leads drop constraint if exists leads_session_id_key`);
+  await p.query(`drop index if exists leads_session_id_uidx`);
+  await p.query(`drop index if exists leads_session_id_key`);
   await p.query(`
-    create unique index if not exists leads_session_id_uidx on public.leads (session_id);
+    create unique index if not exists leads_session_incompleto_uidx
+    on public.leads (session_id)
+    where (status = 'incompleto');
   `);
   schemaEnsured = true;
 }
 
-const UPSERT_SQL = `
+const UPSERT_INCOMPLETO_SQL = `
   insert into public.leads
     (session_id, nombre, apellido, country, whatsapp, email,
      anuncios, ecommerce, presupuesto, compromiso, calificado, puntos,
      last_step, status, updated_at)
-  values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, now())
-  on conflict (session_id) do update set
+  values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'incompleto', now())
+  on conflict (session_id) where (status = 'incompleto') do update set
     nombre      = coalesce(excluded.nombre,      public.leads.nombre),
     apellido    = coalesce(excluded.apellido,    public.leads.apellido),
     country     = coalesce(excluded.country,     public.leads.country),
@@ -68,15 +76,15 @@ const UPSERT_SQL = `
     ecommerce   = coalesce(excluded.ecommerce,   public.leads.ecommerce),
     presupuesto = coalesce(excluded.presupuesto, public.leads.presupuesto),
     compromiso  = coalesce(excluded.compromiso,  public.leads.compromiso),
-    calificado  = case when excluded.status = 'completo' then excluded.calificado else public.leads.calificado end,
+    calificado  = false,
     puntos      = greatest(coalesce(excluded.puntos, 0), coalesce(public.leads.puntos, 0)),
     last_step   = greatest(coalesce(excluded.last_step, 0), coalesce(public.leads.last_step, 0)),
-    status      = case when excluded.status = 'completo' then 'completo' else public.leads.status end,
+    status      = 'incompleto',
     updated_at  = now()
   returning id, status`;
 
-async function upsertBySession(p, fields, session_id) {
-  const r = await p.query(UPSERT_SQL, [
+async function upsertIncompleto(p, fields, session_id) {
+  const r = await p.query(UPSERT_INCOMPLETO_SQL, [
     session_id,
     fields.nombre,
     fields.apellido,
@@ -90,9 +98,45 @@ async function upsertBySession(p, fields, session_id) {
     fields.calificado,
     fields.puntos,
     fields.last_step,
-    fields.status,
   ]);
   return { id: r.rows[0].id, status: r.rows[0].status };
+}
+
+async function insertCompleto(p, fields, session_id) {
+  await p.query('begin');
+  try {
+    await p.query(`delete from public.leads where session_id = $1 and status = 'incompleto'`, [session_id]);
+    const r = await p.query(
+      `insert into public.leads
+        (session_id, nombre, apellido, country, whatsapp, email,
+         anuncios, ecommerce, presupuesto, compromiso, calificado, puntos,
+         last_step, status, updated_at)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'completo', now())
+       returning id, status`,
+      [
+        session_id,
+        fields.nombre,
+        fields.apellido,
+        fields.country,
+        fields.whatsapp,
+        fields.email,
+        fields.anuncios,
+        fields.ecommerce,
+        fields.presupuesto,
+        fields.compromiso,
+        fields.calificado,
+        fields.puntos,
+        fields.last_step,
+      ]
+    );
+    await p.query('commit');
+    return { id: r.rows[0].id, status: r.rows[0].status };
+  } catch (e) {
+    try {
+      await p.query('rollback');
+    } catch (_) {}
+    throw e;
+  }
 }
 
 /** Sin columnas nuevas: una fila por WhatsApp+país (última actualizada). */
@@ -216,7 +260,11 @@ module.exports = async (req, res) => {
   const p = getPool();
 
   try {
-    const row = await upsertBySession(p, fields, session_id);
+    await ensureLeadsSchema(p);
+    const row =
+      status === 'completo'
+        ? await insertCompleto(p, fields, session_id)
+        : await upsertIncompleto(p, fields, session_id);
     return res.status(200).json({ ok: true, id: row.id, status: row.status });
   } catch (err) {
     if (!isSchemaRelatedError(err)) {
@@ -224,11 +272,15 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'save_failed' });
     }
     try {
+      schemaEnsured = false;
       await ensureLeadsSchema(p);
-      const row = await upsertBySession(p, fields, session_id);
+      const row =
+        status === 'completo'
+          ? await insertCompleto(p, fields, session_id)
+          : await upsertIncompleto(p, fields, session_id);
       return res.status(200).json({ ok: true, id: row.id, status: row.status });
     } catch (err2) {
-      console.warn('submit: migración automática o upsert falló, modo legacy:', err2.message);
+      console.warn('submit: migración o upsert falló, modo legacy:', err2.message);
       try {
         const row = await saveLegacy(p, fields);
         return res.status(200).json({

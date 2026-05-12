@@ -27,19 +27,26 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+const ADMIN_TZ = process.env.ADMIN_TZ || 'America/Bogota';
+
 function fmtDate(iso) {
   if (!iso) return '—';
   try {
     const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    const o = { timeZone: ADMIN_TZ, hour12: true };
     const fecha = d.toLocaleDateString('es-CO', {
+      ...o,
+      weekday: 'short',
       day: 'numeric',
-      month: 'long',
+      month: 'short',
       year: 'numeric',
     });
     const hora = d.toLocaleTimeString('es-CO', {
+      ...o,
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true,
+      second: '2-digit',
     });
     return `${fecha} · ${hora}`;
   } catch {
@@ -47,14 +54,52 @@ function fmtDate(iso) {
   }
 }
 
+function fmtDateUtcHint(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+  } catch {
+    return '';
+  }
+}
+
+function labelAnuncios(v) {
+  if (v === 'si') return 'Sí';
+  if (v === 'no') return 'No';
+  return v ? escapeHtml(String(v)) : '—';
+}
+
+function labelEcommerce(v) {
+  if (v === 'si') return 'Sí';
+  if (v === 'no') return 'No';
+  if (v === 'no_se') return 'No sabe';
+  return v ? escapeHtml(String(v)) : '—';
+}
+
+function labelCompromiso(v) {
+  if (v === true) return 'Sí';
+  if (v === false) return 'No';
+  return '—';
+}
+
+function shortSession(s) {
+  if (!s) return '—';
+  const t = String(s);
+  return t.length <= 12 ? escapeHtml(t) : escapeHtml(t.slice(0, 10)) + '…';
+}
+
 function presupuestoLabel(v) {
-  return ({
+  const m = {
     '0': 'Sin inversión',
     '1-500': '$1 a $500',
     '500-2000': '$500 a $2.000',
     '2000-5000': '$2.000 a $5.000',
     '5000+': 'Más de $5.000',
-  })[v] || (v || '—');
+  };
+  if (Object.prototype.hasOwnProperty.call(m, v)) return m[v];
+  return v ? escapeHtml(String(v)) : '—';
 }
 
 module.exports = async (req, res) => {
@@ -62,7 +107,13 @@ module.exports = async (req, res) => {
   let ctaClicks = 0;
   try {
     const p = getPool();
-    rows = (await p.query(`select * from public.leads order by created_at desc limit 1000`)).rows;
+    rows = (
+      await p.query(
+        `select * from public.leads
+         order by coalesce(updated_at, created_at) desc nulls last, created_at desc
+         limit 2000`
+      )
+    ).rows;
     try {
       const ctaR = await p.query(
         `select count(*)::int as c from public.events where type = 'cta_click'`
@@ -100,15 +151,28 @@ module.exports = async (req, res) => {
       } else {
         estado = '<span class="pill pill-no">Denegado</span>';
       }
-      const lastStep = r.last_step ? `paso ${r.last_step}/7` : '—';
+      const lastStep = r.last_step != null ? `paso ${r.last_step}/7` : '—';
+      const ts = r.updated_at != null ? r.updated_at : r.created_at;
+      const hint = fmtDateUtcHint(ts);
+      const fechaTitle = hint ? ` title="${escapeHtml(hint)}"` : '';
+      const creadoSub =
+        r.created_at && r.updated_at && String(r.created_at) !== String(r.updated_at)
+          ? `<div class="cell-sub">Alta: ${escapeHtml(fmtDate(r.created_at))}</div>`
+          : '';
       return `<tr>
-        <td>${escapeHtml(fmtDate((r.updated_at != null ? r.updated_at : r.created_at)))}</td>
+        <td${fechaTitle}><div>${escapeHtml(fmtDate(ts))}</div>${creadoSub}<div class="cell-sub" style="opacity:.78">${escapeHtml(
+          ADMIN_TZ
+        )}</div></td>
         <td><div class="cell-name">${nm}</div><div class="cell-sub">${lastStep}</div></td>
         <td>${escapeHtml(r.email || '—')}</td>
         <td>${typeof wa === 'string' ? escapeHtml(wa) : wa}</td>
+        <td>${labelAnuncios(r.anuncios)}</td>
+        <td>${labelEcommerce(r.ecommerce)}</td>
+        <td>${labelCompromiso(r.compromiso)}</td>
         <td>${estado}</td>
         <td class="num">${r.puntos ?? 0}</td>
-        <td>${escapeHtml(presupuestoLabel(r.presupuesto))}</td>
+        <td>${presupuestoLabel(r.presupuesto)}</td>
+        <td class="cell-sub">${shortSession(r.session_id)}</td>
       </tr>`;
     })
     .join('');
@@ -278,7 +342,7 @@ module.exports = async (req, res) => {
 
 <main>
   <h1>Resumen</h1>
-  <p class="subtitle">Datos en vivo desde tu base de datos. Los leads parciales (sin terminar) también aparecen registrados.</p>
+  <p class="subtitle">Datos en vivo desde tu base de datos. Cada envío completo genera una fila nueva (mismo correo o equipo puede repetirse). Los borradores incompletos se actualizan hasta enviar o abandonar.</p>
 
   <section class="stats">
     <div class="stat stat--primary">
@@ -322,13 +386,17 @@ module.exports = async (req, res) => {
             <th>Lead</th>
             <th>Email</th>
             <th>WhatsApp</th>
+            <th>Anuncios</th>
+            <th>Negocio</th>
+            <th>Compromiso</th>
             <th>Estado</th>
             <th>Puntos</th>
             <th>Presupuesto</th>
+            <th>Sesión</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          ${tableRows || '<tr><td colspan="7" class="empty">Aún no hay registros.</td></tr>'}
+          ${tableRows || '<tr><td colspan="11" class="empty">Aún no hay registros.</td></tr>'}
         </tbody>
       </table>
     </div>
