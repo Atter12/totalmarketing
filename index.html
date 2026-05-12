@@ -6,6 +6,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>Holistic Marketing — Pauta Productos Black en TikTok Ads</title>
 <meta name="description" content="Solo para negocios ecommerce contra entrega que venden por Shopify. Solicita más información con Holistic Marketing." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%233FF8E3'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://player-vz-d7a47b2c-d9b.tv.pandavideo.com" crossorigin />
 <link rel="preconnect" href="https://cdn.pandavideo.com" crossorigin />
 <link rel="dns-prefetch" href="https://thumbs.tv.pandavideo.com.br" />
@@ -653,21 +654,58 @@ function syncWhatsAppHint(){
 
 /* ===================== PANDA VIDEO (poster + mismo panel, con audio) ===================== */
 const LOG = '[Holistic/panda]';
+const PANDA_DEBUG = /(?:^|[?&])panda_debug=1(?:&|$)/.test(location.search);
+function pLog(...args){
+  if(PANDA_DEBUG) console.log(LOG, ...args);
+}
 const PANDA_VIDEO_ID = 'bf52c68b-890f-43b8-b9a7-174dff798000';
-/* smartAutoplay: intenta audio; si el navegador lo bloquea, Panda muestra control para activar sonido */
-const PANDA_EMBED_SRC =
-  `https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/?v=${PANDA_VIDEO_ID}&autoplay=true&muted=false&smartAutoplay=true&mutedIndicatorIcon=true`;
+/* smartAutoplay + controls explícitos (volumen, barra, pantalla completa). hideControlsOnStart=false evita barra oculta al inicio. */
+const PANDA_EMBED_SRC = (()=>{
+  const u = new URL('https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/');
+  u.searchParams.set('v', PANDA_VIDEO_ID);
+  u.searchParams.set('autoplay', 'true');
+  u.searchParams.set('muted', 'false');
+  u.searchParams.set('smartAutoplay', 'true');
+  u.searchParams.set('mutedIndicatorIcon', 'true');
+  u.searchParams.set('hideControlsOnStart', 'false');
+  u.searchParams.set('preload', 'true');
+  u.searchParams.set('controls', 'play-large,play,progress,current-time,volume,fullscreen,settings');
+  return u.toString();
+})();
 const PANDA_POSTER_PRIMARY =
   `https://cdn.pandavideo.com/vz-d7a47b2c-d9b/${PANDA_VIDEO_ID}/thumbnail.jpg`;
 const PANDA_POSTER_FALLBACK =
   `https://thumbs.tv.pandavideo.com.br/vz-d7a47b2c-d9b/${PANDA_VIDEO_ID}/cover.jpg`;
 
+(function prefetchPandaEmbed(){
+  let added = false;
+  function add(){
+    if(added) return;
+    added = true;
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = PANDA_EMBED_SRC;
+    link.setAttribute('data-panda-prefetch', '1');
+    document.head.appendChild(link);
+    pLog('prefetch embed añadido');
+  }
+  const vi = document.getElementById('videoInner');
+  if(vi && 'IntersectionObserver' in window){
+    const io = new IntersectionObserver((entries)=>{
+      for(let i = 0; i < entries.length; i++){
+        if(entries[i].isIntersecting){ add(); return; }
+      }
+    }, {rootMargin: '140px', threshold: 0.01});
+    io.observe(vi);
+  }
+  setTimeout(add, 1600);
+})();
+
 (function initPandaPoster(){
   const img = $('#pandaPoster');
   if(!img){ console.warn(LOG,'#pandaPoster no encontrado'); return; }
-  /* poster-hd.jpg: si lo subes al sitio, cambia en el <img> el src a poster-hd.jpg (evitamos 404 en consola) */
   img.addEventListener('load', ()=>{
-    console.log(LOG,'Poster cargado:', img.currentSrc || img.src, `${img.naturalWidth}×${img.naturalHeight}px`);
+    pLog('Poster cargado:', img.currentSrc || img.src, `${img.naturalWidth}×${img.naturalHeight}px`);
     if(img.naturalWidth > 0 && img.naturalWidth < 120){
       console.warn(LOG,'Miniatura muy pequeña; exporta un frame en Panda o añade poster-hd.jpg (~1920px) junto a index.html');
     }
@@ -677,7 +715,7 @@ const PANDA_POSTER_FALLBACK =
     img.removeAttribute('src');
     img.src = PANDA_POSTER_FALLBACK;
   });
-  console.log(LOG,'Poster por defecto (oEmbed CDN, ~560px ancho):', PANDA_POSTER_PRIMARY);
+  pLog('Poster por defecto:', PANDA_POSTER_PRIMARY);
 })();
 
 (function initPandaLaunch(){
@@ -688,15 +726,15 @@ const PANDA_POSTER_FALLBACK =
     console.error(LOG,'init cancelado — falta #pandaLaunch, #pandaFrameWrap o #videoInner', { launch:!!launch, wrap:!!wrap, inner:!!inner });
     return;
   }
-  console.log(LOG,'init OK', { innerRect: inner ? inner.getBoundingClientRect() : null });
+  pLog('init OK', { innerRect: inner.getBoundingClientRect() });
   let started = false;
   function start(src){
     if(started){
-      console.log(LOG,'start ignorado (ya iniciado)');
+      pLog('start ignorado (ya iniciado)');
       return;
     }
     started = true;
-    console.log(LOG,'Iniciando reproductor…', src || 'click');
+    pLog('Iniciando reproductor…', src || 'gesture');
     launch.setAttribute('aria-busy','true');
     launch.style.pointerEvents = 'none';
 
@@ -723,7 +761,7 @@ const PANDA_POSTER_FALLBACK =
       if(launch.parentNode) launch.remove();
       wrap.classList.add('has-iframe');
       wrap.removeAttribute('aria-hidden');
-      console.log(LOG,'Reproductor listo (poster retirado)');
+      pLog('Reproductor listo (poster retirado)');
     }
 
     try{
@@ -739,20 +777,19 @@ const PANDA_POSTER_FALLBACK =
       iframe.style.height = '100%';
       iframe.style.border = '0';
       iframe.style.background = '#000';
+      if('fetchPriority' in iframe) iframe.fetchPriority = 'high';
       iframe.addEventListener('load', ()=>{
-        console.log(LOG,'iframe: evento load');
+        pLog('iframe: evento load');
         revealPlayer();
       });
       wrap.appendChild(iframe);
-      /* Si el evento load tarda (red o embed), no dejamos pantalla negra sin el poster demasiado pronto */
       setTimeout(()=>{
         if(!finished){
           console.warn(LOG,'load tardío: mostrando iframe de todos modos');
           revealPlayer();
         }
-      }, 6000);
-      console.log(LOG,'iframe en DOM; esperando carga…');
-      console.log(LOG,'Si sigue en negro: en Panda Video → seguridad / dominios permitidos → añade totalmarketing.online');
+      }, 4500);
+      pLog('iframe en DOM; esperando carga…');
     }catch(err){
       console.error(LOG,'Error al crear iframe:', err);
       started = false;
@@ -762,10 +799,12 @@ const PANDA_POSTER_FALLBACK =
       setTimeout(()=>{ if(loading.parentNode) loading.remove(); }, 280);
     }
   }
-  launch.addEventListener('click', e=>{
-    console.log(LOG,'click en launch', e.target?.className);
-    start('click');
-  });
+  /* pointerdown antes que click: el iframe empieza a cargar en cuanto el usuario toca / pulsa el botón */
+  launch.addEventListener('pointerdown', e=>{
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    start('pointerdown');
+  }, {passive:true});
+  launch.addEventListener('click', ()=>{ start('click'); });
   launch.addEventListener('keydown', e=>{
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); start('keyboard'); }
   });
