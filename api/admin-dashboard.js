@@ -175,7 +175,8 @@ module.exports = async (req, res) => {
         r.created_at && r.updated_at && String(r.created_at) !== String(r.updated_at)
           ? `<div class="cell-sub">Alta: ${escapeHtml(fmtDate(r.created_at))}</div>`
           : '';
-      return `<tr>
+      return `<tr data-lead-id="${escapeHtml(String(r.id))}">
+        <td class="col-check"><input type="checkbox" class="lead-check" value="${escapeHtml(String(r.id))}" aria-label="Seleccionar registro" /></td>
         <td${fechaTitle}><div>${escapeHtml(fmtDate(ts))}</div>${creadoSub}<div class="cell-sub" style="opacity:.78">${escapeHtml(
           adminTzCaption()
         )}</div></td>
@@ -307,6 +308,32 @@ module.exports = async (req, res) => {
   .filters input::placeholder{color:var(--muted);opacity:.85}
   .badge-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--muted);box-shadow:var(--shadow-sm)}
 
+  .bulk-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    margin-bottom:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--line);
+    border-radius:12px;box-shadow:var(--shadow-sm);
+  }
+  .bulk-bar__left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .bulk-bar__right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .bulk-btn{
+    padding:9px 14px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+    transition:border-color .15s, background .15s, opacity .15s;
+  }
+  .bulk-btn:hover{border-color:var(--brand);background:var(--brand-dim)}
+  .bulk-btn:disabled{opacity:.45;cursor:not-allowed}
+  .bulk-btn--danger{
+    border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.08);color:var(--danger);
+  }
+  [data-theme="dark"] .bulk-btn--danger{border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.12);color:#fda4af}
+  .bulk-btn--danger:not(:disabled):hover{background:rgba(239,68,68,.15);border-color:var(--danger)}
+  .bulk-count{font-size:13px;font-weight:600;color:var(--muted)}
+  .col-check{width:44px;text-align:center;padding-left:12px!important;padding-right:8px!important}
+  .col-check input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--brand)}
+  thead .col-check input{margin:0 auto;display:block}
+  tbody tr.row-selected{background:rgba(29,108,244,.06)!important}
+  [data-theme="dark"] tbody tr.row-selected{background:rgba(63,248,227,.08)!important}
+
   .table-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
   .table-wrap{overflow:auto}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -393,11 +420,24 @@ module.exports = async (req, res) => {
     <span class="badge-chip" id="filterCount">${total} resultados</span>
   </div>
 
+  <div class="bulk-bar" id="bulkBar">
+    <div class="bulk-bar__left">
+      <span class="bulk-count" id="selectedCount">0 seleccionados</span>
+      <button type="button" class="bulk-btn" id="btnSelectVisible">Seleccionar visibles</button>
+      <button type="button" class="bulk-btn" id="btnSelectAll">Seleccionar todo</button>
+      <button type="button" class="bulk-btn" id="btnClearSel">Quitar selección</button>
+    </div>
+    <div class="bulk-bar__right">
+      <button type="button" class="bulk-btn bulk-btn--danger" id="btnDeleteSel" disabled>Eliminar seleccionados</button>
+    </div>
+  </div>
+
   <div class="table-card">
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th class="col-check"><input type="checkbox" id="checkAll" aria-label="Seleccionar todos" title="Seleccionar todo" /></th>
             <th>Última actividad</th>
             <th>Lead</th>
             <th>Email</th>
@@ -412,7 +452,7 @@ module.exports = async (req, res) => {
           </tr>
         </thead>
         <tbody id="tbody">
-          ${tableRows || '<tr><td colspan="11" class="empty">Aún no hay registros.</td></tr>'}
+          ${tableRows || '<tr><td colspan="12" class="empty">Aún no hay registros.</td></tr>'}
         </tbody>
       </table>
     </div>
@@ -447,19 +487,106 @@ module.exports = async (req, res) => {
   const inp = document.getElementById('filterInput');
   const tbody = document.getElementById('tbody');
   const count = document.getElementById('filterCount');
-  if(!inp || !tbody) return;
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-  inp.addEventListener('input', ()=>{
-    const q = inp.value.trim().toLowerCase();
-    let shown = 0;
-    rows.forEach(r=>{
-      const txt = r.textContent.toLowerCase();
-      const hit = !q || txt.includes(q);
-      r.style.display = hit ? '' : 'none';
-      if(hit) shown++;
+  const checkAll = document.getElementById('checkAll');
+  const selectedCount = document.getElementById('selectedCount');
+  const btnDelete = document.getElementById('btnDeleteSel');
+  const btnSelectVisible = document.getElementById('btnSelectVisible');
+  const btnSelectAll = document.getElementById('btnSelectAll');
+  const btnClearSel = document.getElementById('btnClearSel');
+  if(!tbody) return;
+
+  function dataRows(){
+    return Array.from(tbody.querySelectorAll('tr[data-lead-id]'));
+  }
+  function visibleRows(){
+    return dataRows().filter(function(r){ return r.style.display !== 'none'; });
+  }
+  function rowChecks(){
+    return Array.from(tbody.querySelectorAll('.lead-check'));
+  }
+  function selectedIds(){
+    return rowChecks().filter(function(c){ return c.checked; }).map(function(c){ return c.value; });
+  }
+  function syncRowHighlight(){
+    dataRows().forEach(function(tr){
+      var cb = tr.querySelector('.lead-check');
+      tr.classList.toggle('row-selected', !!(cb && cb.checked));
     });
-    count.textContent = shown + ' resultado' + (shown === 1 ? '' : 's');
+  }
+  function syncBulkUi(){
+    var n = selectedIds().length;
+    if(selectedCount) selectedCount.textContent = n + ' seleccionado' + (n === 1 ? '' : 's');
+    if(btnDelete) btnDelete.disabled = n === 0;
+    syncRowHighlight();
+    if(checkAll){
+      var vis = visibleRows();
+      var visChecks = vis.map(function(tr){ return tr.querySelector('.lead-check'); }).filter(Boolean);
+      checkAll.checked = visChecks.length > 0 && visChecks.every(function(c){ return c.checked; });
+      checkAll.indeterminate = visChecks.some(function(c){ return c.checked; }) && !checkAll.checked;
+    }
+  }
+  function setChecked(rows, on){
+    rows.forEach(function(tr){
+      var cb = tr.querySelector('.lead-check');
+      if(cb) cb.checked = on;
+    });
+    syncBulkUi();
+  }
+
+  rowChecks().forEach(function(cb){
+    cb.addEventListener('change', syncBulkUi);
   });
+  if(checkAll){
+    checkAll.addEventListener('change', function(){
+      setChecked(visibleRows(), checkAll.checked);
+    });
+  }
+  if(btnSelectVisible) btnSelectVisible.addEventListener('click', function(){ setChecked(visibleRows(), true); });
+  if(btnSelectAll) btnSelectAll.addEventListener('click', function(){ setChecked(dataRows(), true); });
+  if(btnClearSel) btnClearSel.addEventListener('click', function(){ setChecked(dataRows(), false); });
+
+  if(btnDelete){
+    btnDelete.addEventListener('click', async function(){
+      var ids = selectedIds();
+      if(!ids.length) return;
+      var msg = ids.length === 1
+        ? '¿Eliminar 1 registro? No se puede deshacer.'
+        : '¿Eliminar ' + ids.length + ' registros? No se puede deshacer.';
+      if(!confirm(msg)) return;
+      btnDelete.disabled = true;
+      btnDelete.textContent = 'Eliminando…';
+      try{
+        var res = await fetch('/api/admin-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: ids })
+        });
+        var data = await res.json().catch(function(){ return {}; });
+        if(!res.ok) throw new Error(data.error || 'delete_failed');
+        location.reload();
+      }catch(e){
+        alert('No se pudo eliminar. Intenta de nuevo.');
+        btnDelete.disabled = false;
+        btnDelete.textContent = 'Eliminar seleccionados';
+        syncBulkUi();
+      }
+    });
+  }
+
+  if(inp && count){
+    inp.addEventListener('input', function(){
+      var q = inp.value.trim().toLowerCase();
+      var shown = 0;
+      dataRows().forEach(function(r){
+        var hit = !q || r.textContent.toLowerCase().includes(q);
+        r.style.display = hit ? '' : 'none';
+        if(hit) shown++;
+      });
+      count.textContent = shown + ' resultado' + (shown === 1 ? '' : 's');
+      syncBulkUi();
+    });
+  }
+  syncBulkUi();
 })();
 </script>
 </body>
