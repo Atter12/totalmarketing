@@ -719,8 +719,9 @@ function pLog(...args){
   if(PANDA_DEBUG) console.log(LOG, ...args);
 }
 const PANDA_VIDEO_ID = 'bf52c68b-890f-43b8-b9a7-174dff798000';
-/* Sin play-large (evita el botón gigante DUPLICADO del propio reproductor):
-   smartAutoplay intenta con audio y, si el navegador bloquea, muestra solo el icono pequeño de muted. */
+/* Sin play-large (evita el botón gigante DUPLICADO del propio reproductor).
+   Incluimos rewind y fast-forward (saltos de 10s) bien visibles, además del progress.
+   color = barra/relleno de progreso · controlsColor = iconos. */
 const PANDA_EMBED_SRC = (()=>{
   const u = new URL('https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/');
   u.searchParams.set('v', PANDA_VIDEO_ID);
@@ -730,7 +731,10 @@ const PANDA_EMBED_SRC = (()=>{
   u.searchParams.set('mutedIndicatorIcon', 'true');
   u.searchParams.set('hideControlsOnStart', 'false');
   u.searchParams.set('preload', 'true');
-  u.searchParams.set('controls', 'play,progress,current-time,volume,fullscreen,settings,pip');
+  u.searchParams.set('disableForward', 'false');
+  u.searchParams.set('color', '#3FF8E3');
+  u.searchParams.set('controlsColor', '#FFFFFF');
+  u.searchParams.set('controls', 'play,rewind,fast-forward,progress,current-time,volume,settings,pip,fullscreen');
   return u.toString();
 })();
 const PANDA_POSTER_PRIMARY =
