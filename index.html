@@ -73,22 +73,22 @@
   }
   .h1 b{color:#fff}
 
-  /* video wrap with neon glow — más presencia en la página */
+  /* video wrap — marco fino con doble glow neón, ratio 16:9 estable */
   .video-wrap{
     position:relative;
-    border-radius:20px;
-    padding:8px;
-    background:linear-gradient(135deg,rgba(63,248,227,.65),rgba(255,43,94,.55));
-    box-shadow:var(--shadow-cyan), var(--shadow-red), 0 24px 64px rgba(0,0,0,.45);
+    border-radius:18px;
+    padding:3px;
+    background:linear-gradient(135deg,rgba(63,248,227,.55),rgba(255,43,94,.45));
+    box-shadow:0 0 30px rgba(63,248,227,.22), 0 0 60px rgba(255,43,94,.15), 0 22px 60px rgba(0,0,0,.55);
     max-width:min(960px,calc(100vw - 24px));margin:0 auto;
+    isolation:isolate;
   }
   .video-inner{
     position:relative;
     border-radius:15px;
     overflow:hidden;
-    background:linear-gradient(180deg,#121218 0%,#000 100%);
+    background:#000;
     aspect-ratio:16/9;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
   }
   .video-inner iframe,.video-inner video{position:absolute;inset:0;width:100%;height:100%;border:0}
   .video-placeholder{
@@ -119,44 +119,87 @@
     font-size:13px;color:#9aa3ad;
   }
 
-  /* Panda: poster + click -> iframe en la misma caja */
+  /* Panda: poster + clic -> iframe en la misma caja */
   .panda-frame-wrap{
     position:absolute;inset:0;z-index:1;background:#000;
     pointer-events:none;
+    opacity:0;transition:opacity .35s ease;
   }
   .panda-frame-wrap.has-iframe{
     pointer-events:auto;
     z-index:10;
+    opacity:1;
   }
   .panda-launch{
     position:absolute;inset:0;z-index:3;
     display:block;width:100%;height:100%;margin:0;padding:0;
     border:0;background:transparent;cursor:pointer;color:inherit;
     touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+    transition:opacity .35s ease;
   }
+  .panda-launch.is-fading{opacity:0;pointer-events:none}
   .panda-poster{
     position:absolute;inset:0;width:100%;height:100%;
     object-fit:cover;
     pointer-events:none;
     user-select:none;
+    -webkit-user-drag:none;
   }
+  .panda-launch::before{
+    content:"";
+    position:absolute;inset:0;
+    background:radial-gradient(ellipse at 50% 55%, rgba(0,0,0,.05) 0%, rgba(0,0,0,.45) 75%);
+    pointer-events:none;
+    transition:background .25s ease;
+  }
+  .panda-launch:hover::before{background:radial-gradient(ellipse at 50% 55%, rgba(0,0,0,.0) 0%, rgba(0,0,0,.55) 80%)}
+
   .panda-launch .panda-playbtn{
     position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    width:min(92px,22vw);height:min(92px,22vw);border-radius:50%;
-    background:rgba(0,0,0,.45);
-    border:3px solid rgba(255,255,255,.92);
-    box-shadow:0 0 0 8px rgba(63,248,227,.2),0 12px 40px rgba(0,0,0,.5);
+    width:clamp(64px,13vw,92px);height:clamp(64px,13vw,92px);border-radius:50%;
+    background:rgba(10,12,16,.55);
+    border:0;
     display:grid;place-items:center;
-    backdrop-filter:blur(6px);pointer-events:none;
+    pointer-events:none;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,.55),
+      0 0 0 10px rgba(63,248,227,.18),
+      0 16px 44px rgba(0,0,0,.55);
+    backdrop-filter:blur(6px);
+    transition:transform .25s ease, box-shadow .25s ease, background .25s ease;
+  }
+  .panda-launch:hover .panda-playbtn{
+    transform:translate(-50%,-50%) scale(1.06);
+    background:rgba(10,12,16,.7);
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,.85),
+      0 0 0 14px rgba(63,248,227,.28),
+      0 18px 56px rgba(0,0,0,.6);
+  }
+  .panda-launch:active .panda-playbtn{transform:translate(-50%,-50%) scale(.95)}
+
+  .panda-launch .panda-playbtn::before{
+    content:"";
+    position:absolute;inset:-2px;border-radius:50%;
+    border:2px solid rgba(63,248,227,.45);
+    animation:pandaPulse 2.4s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes pandaPulse{
+    0%{transform:scale(.95);opacity:.7}
+    70%{transform:scale(1.35);opacity:0}
+    100%{transform:scale(1.35);opacity:0}
   }
   .panda-launch .panda-playbtn::after{
     content:"";display:block;
     width:0;height:0;
-    border-left:22px solid #fff;
-    border-top:14px solid transparent;
-    border-bottom:14px solid transparent;
-    margin-left:6px;
+    border-left:clamp(18px,3.4vw,24px) solid #fff;
+    border-top:clamp(11px,2.1vw,15px) solid transparent;
+    border-bottom:clamp(11px,2.1vw,15px) solid transparent;
+    margin-left:clamp(4px,1vw,6px);
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.55));
   }
+  .panda-launch:focus-visible{outline:3px solid var(--cyan);outline-offset:4px;border-radius:15px}
   .panda-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
 
   /* Carga del reproductor: feedback inmediato sin quitar el poster de golpe */
@@ -345,9 +388,11 @@
 
   /* ============== RESPONSIVE ============== */
   @media (max-width:600px){
-    .hero{padding:32px 16px 48px}
+    .hero{padding:32px 14px 44px}
     .cta{padding:16px 24px}
     .card{padding:20px 16px 28px}
+    .video-wrap{padding:2px;border-radius:14px;max-width:calc(100vw - 20px)}
+    .video-inner{border-radius:11px}
   }
 </style>
 <!-- Meta Pixel Code -->
@@ -674,7 +719,8 @@ function pLog(...args){
   if(PANDA_DEBUG) console.log(LOG, ...args);
 }
 const PANDA_VIDEO_ID = 'bf52c68b-890f-43b8-b9a7-174dff798000';
-/* smartAutoplay + controls explícitos (volumen, barra, pantalla completa). hideControlsOnStart=false evita barra oculta al inicio. */
+/* Sin play-large (evita el botón gigante DUPLICADO del propio reproductor):
+   smartAutoplay intenta con audio y, si el navegador bloquea, muestra solo el icono pequeño de muted. */
 const PANDA_EMBED_SRC = (()=>{
   const u = new URL('https://player-vz-d7a47b2c-d9b.tv.pandavideo.com/embed/');
   u.searchParams.set('v', PANDA_VIDEO_ID);
@@ -684,7 +730,7 @@ const PANDA_EMBED_SRC = (()=>{
   u.searchParams.set('mutedIndicatorIcon', 'true');
   u.searchParams.set('hideControlsOnStart', 'false');
   u.searchParams.set('preload', 'true');
-  u.searchParams.set('controls', 'play-large,play,progress,current-time,volume,fullscreen,settings');
+  u.searchParams.set('controls', 'play,progress,current-time,volume,fullscreen,settings,pip');
   return u.toString();
 })();
 const PANDA_POSTER_PRIMARY =
@@ -769,14 +815,18 @@ const PANDA_POSTER_FALLBACK =
     function revealPlayer(){
       if(finished) return;
       finished = true;
-      loading.classList.remove('is-visible');
-      setTimeout(()=>{
-        if(loading.parentNode) loading.remove();
-      }, 280);
-      if(launch.parentNode) launch.remove();
+      /* 1) Mostramos el iframe primero (fade-in en .panda-frame-wrap.has-iframe). */
       wrap.classList.add('has-iframe');
       wrap.removeAttribute('aria-hidden');
-      pLog('Reproductor listo (poster retirado)');
+      /* 2) Apagamos el spinner. */
+      loading.classList.remove('is-visible');
+      /* 3) Fade-out del overlay con poster + botón nuestro (sin saltos visuales). */
+      launch.classList.add('is-fading');
+      setTimeout(()=>{
+        if(loading.parentNode) loading.remove();
+        if(launch.parentNode) launch.remove();
+      }, 360);
+      pLog('Reproductor listo (transición suave)');
     }
 
     try{
@@ -795,7 +845,9 @@ const PANDA_POSTER_FALLBACK =
       if('fetchPriority' in iframe) iframe.fetchPriority = 'high';
       iframe.addEventListener('load', ()=>{
         pLog('iframe: evento load');
-        revealPlayer();
+        /* Pequeño margen para que Panda inicie el autoplay antes de revelar
+           y nunca se vea “pausado” detrás. */
+        setTimeout(revealPlayer, 180);
       });
       wrap.appendChild(iframe);
       setTimeout(()=>{
@@ -814,12 +866,17 @@ const PANDA_POSTER_FALLBACK =
       setTimeout(()=>{ if(loading.parentNode) loading.remove(); }, 280);
     }
   }
-  /* pointerdown antes que click: el iframe empieza a cargar en cuanto el usuario toca / pulsa el botón */
+  /* Un único disparador para evitar dobles inicios; pointerdown gana latencia
+     y "started" bloquea el click duplicado en navegadores que envían los dos. */
   launch.addEventListener('pointerdown', e=>{
     if(e.pointerType === 'mouse' && e.button !== 0) return;
     start('pointerdown');
   }, {passive:true});
-  launch.addEventListener('click', ()=>{ start('click'); });
+  launch.addEventListener('click', e=>{
+    /* Si ya empezó por pointerdown, esto es no-op por el flag started. */
+    e.preventDefault();
+    start('click');
+  });
   launch.addEventListener('keydown', e=>{
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); start('keyboard'); }
   });
