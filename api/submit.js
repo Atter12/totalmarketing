@@ -5,6 +5,7 @@
  * Tras un completo se borra el borrador incompleto de esa sesión.
  */
 const { Pool } = require('pg');
+const { whatsappDigitsOk } = require('../latam-phone.js');
 
 let pool;
 function getPool() {
@@ -241,11 +242,19 @@ module.exports = async (req, res) => {
   const last_step = Number.isFinite(Number(body.last_step)) ? Number(body.last_step) : null;
   const puntos = Number.isFinite(Number(body.puntos)) ? Number(body.puntos) : 0;
 
+  const country = clean(body.country);
+  let whatsapp = clean(body.whatsapp);
+  if (whatsapp) whatsapp = String(whatsapp).replace(/\D/g, '') || null;
+
+  if (whatsapp && country && !whatsappDigitsOk(country, whatsapp)) {
+    return res.status(400).json({ error: 'invalid_whatsapp' });
+  }
+
   const fields = {
     nombre: clean(body.nombre),
     apellido: clean(body.apellido),
-    country: clean(body.country),
-    whatsapp: clean(body.whatsapp),
+    country,
+    whatsapp,
     email: clean(body.email),
     anuncios: clean(body.anuncios),
     ecommerce: clean(body.ecommerce),

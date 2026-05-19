@@ -320,7 +320,7 @@
   /* WhatsApp combo */
   .phone{display:flex;gap:8px}
   .phone .country{
-    flex:none;min-width:154px;max-width:180px;display:flex;align-items:center;gap:6px;
+    flex:none;min-width:min(46vw,188px);max-width:min(50vw,220px);display:flex;align-items:center;gap:6px;
     border:1px solid #d6dbe3;border-radius:10px;padding:0 10px;background:#fff;
   }
   .phone .country select{
@@ -485,13 +485,11 @@ fbq('track', 'PageView');
             <div class="country">
               <span class="flag" id="flag">🇵🇪</span>
               <select id="country" name="country" aria-label="País y código">
-                <option value="+51" data-flag="🇵🇪">Perú (+51)</option>
-                <option value="+57" data-flag="🇨🇴">Colombia (+57)</option>
               </select>
             </div>
-            <input type="tel" name="whatsapp" id="whatsappInput" placeholder="9 dígitos, ej. 912 345 678" inputmode="numeric" autocomplete="tel-national" maxlength="14" required />
+            <input type="tel" name="whatsapp" id="whatsappInput" placeholder="9 dígitos, ej. 912 345 678" inputmode="numeric" autocomplete="tel-national" required />
           </div>
-          <div class="err">Ingresa un número válido</div>
+          <div class="err" id="whatsappErr">Ingresa un número válido</div>
         </div>
       </div>
 
@@ -579,6 +577,7 @@ fbq('track', 'PageView');
 
 <div class="foot">© Holistic Marketing — Todos los derechos reservados.</div>
 
+<script src="/latam-phone.js"></script>
 <script>
 /* ===================== APP STATE ===================== */
 const TOTAL_STEPS = 7;
@@ -673,13 +672,6 @@ function isValidEmailStrict(s){
   return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+$/.test(local);
 }
 
-function whatsappDigitsOk(code, raw){
-  const d = String(raw || '').replace(/\D/g, '');
-  if(code === '+51') return d.length === 9;
-  if(code === '+57') return d.length === 10;
-  return false;
-}
-
 function scoreAnswers(a){
   let pts = 0;
   if(a.anuncios === 'si') pts += 1;
@@ -689,27 +681,38 @@ function scoreAnswers(a){
   return pts;
 }
 
-function guessDefaultCountryCode(){
-  try{
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-    if(tz === 'America/Bogota') return '+57';
-    if(tz === 'America/Lima') return '+51';
-  }catch(_){}
-  const lang = (navigator.language || '').toLowerCase();
-  if(lang.startsWith('es-co')) return '+57';
-  if(lang.startsWith('es-pe')) return '+51';
-  return '+51';
+function initCountrySelect(){
+  const sel = $('#country');
+  if(!sel || !window.HM_PHONE) return;
+  sel.innerHTML = HM_PHONE.LATAM_PHONES.map(function(p){
+    return '<option value="' + p.code + '" data-flag="' + p.flag + '">' + p.name + ' (' + p.code + ')</option>';
+  }).join('');
 }
 
 function syncWhatsAppHint(){
   const sel = $('#country');
   const inp = $('#whatsappInput');
-  if(!sel || !inp) return;
-  if(sel.value === '+51'){
-    inp.placeholder = '9 dígitos, ej. 912 345 678';
-  }else{
-    inp.placeholder = '10 dígitos, ej. 300 123 4567';
-  }
+  const err = $('#whatsappErr');
+  if(!sel || !inp || !window.HM_PHONE) return;
+  const cfg = HM_PHONE.phoneByCode(sel.value);
+  if(!cfg) return;
+  inp.placeholder = cfg.digits + ' dígitos, ej. ' + cfg.example;
+  inp.maxLength = cfg.digits;
+  if(err) err.textContent = HM_PHONE.whatsappErrMsg(sel.value);
+  const d = inp.value.replace(/\D/g, '');
+  if(d.length > cfg.digits) inp.value = d.slice(0, cfg.digits);
+}
+
+function bindWhatsAppInput(){
+  const inp = $('#whatsappInput');
+  if(!inp) return;
+  inp.addEventListener('input', function(){
+    const sel = $('#country');
+    const cfg = sel && window.HM_PHONE ? HM_PHONE.phoneByCode(sel.value) : null;
+    const max = cfg ? cfg.digits : 15;
+    const d = inp.value.replace(/\D/g, '').slice(0, max);
+    if(inp.value !== d) inp.value = d;
+  });
 }
 
 /* ===================== PANDA VIDEO (poster + mismo panel, con audio) ===================== */
@@ -899,16 +902,18 @@ $('#backToHero').addEventListener('click', ()=>{
   window.scrollTo({top:0, behavior:'instant'});
 });
 
-/* ===================== PAÍS (solo PE / CO) + hint WhatsApp ===================== */
+/* ===================== PAÍS LATAM + validación WhatsApp ===================== */
 $('#country').addEventListener('change', e=>{
   const opt = e.target.options[e.target.selectedIndex];
   $('#flag').textContent = opt.dataset.flag || '🌐';
   syncWhatsAppHint();
 });
 (function initCountryDefault(){
+  initCountrySelect();
+  bindWhatsAppInput();
   const sel = $('#country');
-  if(!sel) return;
-  sel.value = guessDefaultCountryCode();
+  if(!sel || !window.HM_PHONE) return;
+  sel.value = HM_PHONE.guessDefaultCountryCode();
   const opt = sel.options[sel.selectedIndex];
   $('#flag').textContent = opt?.dataset?.flag || '🌐';
   syncWhatsAppHint();
@@ -947,7 +952,7 @@ function validateStep(){
       if(inp.type==='email') ok = ok && isValidEmailStrict(inp.value);
       if(inp.type==='tel'){
         const code = ($('#country', el) || $('#country'))?.value || '+51';
-        ok = ok && whatsappDigitsOk(code, inp.value);
+        ok = ok && window.HM_PHONE && HM_PHONE.whatsappDigitsOk(code, inp.value);
       }
       if(!ok){ inp.closest('.field').classList.add('error'); errs.push(inp.name); }
     }
@@ -976,7 +981,11 @@ function captureStep(){
   $$('input', el).forEach(inp=>{
     if(inp.type==='radio'){ if(inp.checked) state.answers[inp.name] = inp.value; }
     else if(inp.type==='checkbox'){ state.answers[inp.name] = inp.checked; }
-    else { state.answers[inp.name] = inp.value.trim(); }
+    else {
+      let v = inp.value.trim();
+      if(inp.name === 'whatsapp') v = v.replace(/\D/g, '');
+      state.answers[inp.name] = v;
+    }
   });
   if($('#country', el)) state.answers.country = $('#country', el).value;
 }

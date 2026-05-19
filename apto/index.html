@@ -143,21 +143,13 @@
 
   var agencyContacts = [{ e164: '51984789504', label: 'Holistic Marketing (+51 984 789 504)' }];
 
-  function waLabelAnuncios(v){
-    return v === 'si' ? 'Sí, he realizado publicidad' : 'No, nunca';
-  }
-  function waLabelEcommerce(v){
-    if(v === 'si') return 'Sí, tengo un negocio';
-    if(v === 'no_se') return 'No sé qué es ecommerce';
-    return 'No tengo negocio';
-  }
-  function waLabelPresupuesto(v){
+  function waShortPresupuesto(v){
     const m = {
-      '0':'No invierto en publicidad',
-      '1-500':'Entre $1 a $500 al mes',
-      '500-2000':'Entre $500 a $2.000 al mes',
-      '2000-5000':'Entre $2.000 a $5.000 al mes',
-      '5000+':'Más de $5.000 al mes'
+      '0':'sin inversión',
+      '1-500':'$1–500/mes',
+      '500-2000':'$500–2k/mes',
+      '2000-5000':'$2k–5k/mes',
+      '5000+':'+$5k/mes'
     };
     return m[v] || String(v || '—');
   }
@@ -165,31 +157,18 @@
   function buildAgencyWhatsAppMessage(){
     const dig = String(a.whatsapp || '').replace(/\D/g, '');
     const lineWa = [a.country || '', dig].filter(Boolean).join(' ').trim() || '—';
+    const nombre = [a.nombre, a.apellido].filter(Boolean).join(' ').trim() || '—';
+    const ads = a.anuncios === 'si' ? 'sí' : 'no';
+    const neg = a.ecommerce === 'si' ? 'sí' : (a.ecommerce === 'no_se' ? 'no sabe' : 'no');
+    const pres = waShortPresupuesto(a.presupuesto);
     return [
-      '🔔 *NUEVO LEAD CALIFICADO — APTO*',
-      '_Holistic Marketing · Total Marketing_',
+      '🔔 *Lead APTO*',
       '',
-      '✅ *Estado:* APTO (✓ Calificado)',
+      `*${nombre}*`,
+      `📱 ${lineWa}`,
+      `✉ ${a.email || '—'}`,
       '',
-      '*Datos de contacto*',
-      `• Nombre: ${a.nombre || '—'}`,
-      `• Apellido: ${a.apellido || '—'}`,
-      `• WhatsApp: ${lineWa}`,
-      `• Email: ${a.email || '—'}`,
-      '',
-      '*Respuestas del filtro*',
-      `• ¿Has realizado anuncios?: ${waLabelAnuncios(a.anuncios)}`,
-      `• ¿Negocio / ecommerce?: ${waLabelEcommerce(a.ecommerce)}`,
-      `• Presupuesto mensual en anuncios: ${waLabelPresupuesto(a.presupuesto)}`,
-      '',
-      '• Compromiso de disponibilidad para el contacto de la agencia: *Sí*',
-      '',
-      '—',
-      '📎 *Referencias*',
-      '• Landing: https://www.totalmarketing.online',
-      '• Esta página: https://www.totalmarketing.online/apto',
-      '• WhatsApp agencia: +51 984 789 504',
-      '• Link corto: https://wa.me/victorminas28'
+      `Ads: ${ads} · Negocio: ${neg} · Presupuesto: *${pres}*`
     ].join('\n');
   }
 
